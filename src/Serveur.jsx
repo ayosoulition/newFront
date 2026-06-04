@@ -16,14 +16,11 @@ export default function Serveur() {
   const notificationSoundRef = useRef(null);
   const prevTablesRef = useRef({});
 
-  // =========================
-  // INIT SOUND
-  // =========================
+  // ================= SOUND =================
   useEffect(() => {
     const sound = new Audio("/assets/notif.wav");
     sound.preload = "auto";
     sound.load();
-
     notificationSoundRef.current = sound;
 
     const unlockAudio = () => {
@@ -40,22 +37,17 @@ export default function Serveur() {
 
     window.addEventListener("click", unlockAudio, { once: true });
 
-    return () => {
-      window.removeEventListener("click", unlockAudio);
-    };
+    return () => window.removeEventListener("click", unlockAudio);
   }, []);
 
   const playSound = () => {
     const sound = notificationSoundRef.current;
     if (!sound) return;
-
     sound.currentTime = 0;
     sound.play().catch(() => {});
   };
 
-  // =========================
-  // SOCKETS (FIXED)
-  // =========================
+  // ================= SOCKET =================
   useEffect(() => {
     fetch(`${API_BASE_URL}/orders`)
       .then((res) => res.json())
@@ -68,8 +60,7 @@ export default function Serveur() {
     socket.on("tables-update", (newTables) => {
       const prevTables = prevTablesRef.current;
 
-      const importantStatuses = new Set(["ordered", "bill"]);
-
+      const importantStatuses = new Set(["ordered", "bill", "ready"]);
       let shouldPlaySound = false;
 
       for (const tableId in newTables) {
@@ -86,9 +77,7 @@ export default function Serveur() {
 
       if (shouldPlaySound) playSound();
 
-      // FIX: stable deep copy
       prevTablesRef.current = JSON.parse(JSON.stringify(newTables));
-
       setTables(newTables);
     });
 
@@ -97,15 +86,28 @@ export default function Serveur() {
       playSound();
     });
 
+    socket.on("order-ready", (data) => {
+      const tableId = data.tableId;
+
+      playSound();
+
+      setTables((prev) => ({
+        ...prev,
+        [tableId]: {
+          ...prev[tableId],
+          status: "ready",
+        },
+      }));
+    });
+
     return () => {
       socket.off("tables-update");
       socket.off("new-order");
+      socket.off("order-ready");
     };
   }, []);
 
-  // =========================
-  // API CALL
-  // =========================
+  // ================= API =================
   const updateTableStatus = async (tableId, action) => {
     return fetch(`${API_BASE_URL}/tables/${tableId}/status`, {
       method: "PATCH",
@@ -114,9 +116,7 @@ export default function Serveur() {
     });
   };
 
-  // =========================
-  // ACTION HANDLER (FIXED LOGIC)
-  // =========================
+  // ================= ACTIONS =================
   const handleActionAndClose = async (action) => {
     if (!selectedTable) return;
 
@@ -131,7 +131,7 @@ export default function Serveur() {
             action === "confirm"
               ? "confirmed"
               : action === "served"
-                ? "notPayed" // ✅ FIXED
+                ? "notPayed"
                 : action === "paid"
                   ? "empty"
                   : prev[selectedTable]?.status,
@@ -148,9 +148,6 @@ export default function Serveur() {
     }
   };
 
-  // =========================
-  // CANCEL
-  // =========================
   const handleCancel = async (tableId) => {
     try {
       await updateTableStatus(tableId, "cancel");
@@ -172,11 +169,13 @@ export default function Serveur() {
     }
   };
 
+  // ================= LABELS =================
   const getStatusLabel = (status) => {
     const labels = {
       empty: "Libre",
       ordered: "Commande",
       confirmed: "Confirmée",
+      ready: "Prête 🍳",
       notPayed: "Non payée",
       bill: "Addition",
     };
@@ -187,24 +186,21 @@ export default function Serveur() {
 
   const selectedStatus = tables[selectedTable]?.status;
 
+  // ================= FILTER =================
   const filteredTables = Object.keys(tables).filter((tableId) => {
     const table = tables[tableId];
 
-    // const matchStatus = statusFilter === "all" || table.status === statusFilter;
-
-    let matchStatus;
-
-    if (table.status === "empty") {
-      matchStatus = false;
-    } else {
-      matchStatus = statusFilter === "all" || table.status === statusFilter;
-    }
+    const matchStatus =
+      table.status === "empty"
+        ? false
+        : statusFilter === "all" || table.status === statusFilter;
 
     const matchSearch = tableId.toString().includes(searchTable.trim());
 
     return matchStatus && matchSearch;
   });
 
+  // ================= UI =================
   return (
     <div className="dashboard-container">
       <header className="app-header">
@@ -219,43 +215,47 @@ export default function Serveur() {
 
       <main className="main-content">
         {/* FILTER */}
-        <div style={filterBar}>
+        <div className="filter-bar">
           <input
+            className="search-input"
             type="text"
             placeholder="🔢 Table number..."
             value={searchTable}
             onChange={(e) => setSearchTable(e.target.value)}
-            style={searchInput}
           />
 
-          <div style={filterButtons}>
+          <div className="filter-buttons">
             <button
+              className={`btn ${statusFilter === "all" ? "active" : ""}`}
               onClick={() => setStatusFilter("all")}
-              style={statusFilter === "all" ? activeBtn : btn}
             >
               All
             </button>
+
             <button
+              className={`btn ${statusFilter === "ordered" ? "active" : ""}`}
               onClick={() => setStatusFilter("ordered")}
-              style={statusFilter === "ordered" ? activeBtn : btn}
             >
               Commande
             </button>
+
             <button
+              className={`btn ${statusFilter === "confirmed" ? "active" : ""}`}
               onClick={() => setStatusFilter("confirmed")}
-              style={statusFilter === "confirmed" ? activeBtn : btn}
             >
               Confirmée
             </button>
+
             <button
-              onClick={() => setStatusFilter("bill")}
-              style={statusFilter === "bill" ? activeBtn : btn}
+              className={`btn ${statusFilter === "ready" ? "active" : ""}`}
+              onClick={() => setStatusFilter("ready")}
             >
-              Addition
+              Prête 🍳
             </button>
+
             <button
+              className={`btn ${statusFilter === "notPayed" ? "active" : ""}`}
               onClick={() => setStatusFilter("notPayed")}
-              style={statusFilter === "notPayed" ? activeBtn : btn}
             >
               Non payée
             </button>
@@ -283,33 +283,32 @@ export default function Serveur() {
 
       {/* MODAL */}
       {selectedTable && (
-        <div style={modalOverlay} onClick={closeModal}>
-          <div style={modalBox} onClick={(e) => e.stopPropagation()}>
-            <div style={modalHeader}>
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
               <h3>Table {selectedTable}</h3>
-              <button style={closeBtn} onClick={closeModal}>
+              <button className="close-btn" onClick={closeModal}>
                 ✕
               </button>
             </div>
 
-            <div style={modalBody}>
+            <div className="modal-body">
               {orders[selectedTable]?.order ? (
                 Object.entries(orders[selectedTable].order).map(
                   ([cat, items]) => (
-                    <div key={cat} style={{ marginBottom: 15 }}>
-                      <h4 style={{ marginBottom: 8 }}>{cat}</h4>
+                    <div key={cat}>
+                      <h4>{cat}</h4>
 
                       {items.map((item) => (
-                        <div key={item.id} style={itemCard}>
+                        <div key={item.id} className="item-card">
                           <img
+                            className="item-img"
                             src={`assets/${item.img}`}
-                            style={imgStyle}
-                            alt={item.title}
                           />
                           <div>
                             <div style={{ fontWeight: 600 }}>{item.title}</div>
-                            <div style={smallText}>Qty: {item.qt}</div>
-                            <div style={smallText}>{item.price} DH</div>
+                            <div className="small-text">Qty: {item.qt}</div>
+                            <div className="small-text">{item.price} DH</div>
                           </div>
                         </div>
                       ))}
@@ -317,21 +316,21 @@ export default function Serveur() {
                   ),
                 )
               ) : (
-                <p style={{ color: "#666" }}>No order for this table</p>
+                <p className="small-text">No order for this table</p>
               )}
 
-              <div style={btnContainer}>
+              <div className="btn-container">
                 {selectedStatus === "ordered" && (
                   <>
                     <button
-                      style={confirmBtn}
+                      className="confirm-btn"
                       onClick={() => handleActionAndClose("confirm")}
                     >
                       Confirm
                     </button>
 
                     <button
-                      style={cancelBtn}
+                      className="cancel-btn"
                       onClick={() => handleCancel(selectedTable)}
                     >
                       Cancel
@@ -339,19 +338,19 @@ export default function Serveur() {
                   </>
                 )}
 
-                {selectedStatus === "confirmed" && (
+                {selectedStatus === "ready" && (
                   <button
-                    style={servedBtn}
+                    className="served-btn"
                     onClick={() => handleActionAndClose("served")}
                   >
-                    Served
+                    Served 🍽️
                   </button>
                 )}
 
                 {(selectedStatus === "bill" ||
                   selectedStatus === "notPayed") && (
                   <button
-                    style={paidBtn}
+                    className="paid-btn"
                     onClick={() => handleActionAndClose("paid")}
                   >
                     Paid ✔
@@ -365,119 +364,3 @@ export default function Serveur() {
     </div>
   );
 }
-
-/* ================= STYLES (UNCHANGED) ================= */
-
-const filterBar = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 10,
-  marginBottom: 15,
-};
-const searchInput = {
-  padding: 10,
-  borderRadius: 10,
-  border: "1px solid #ddd",
-};
-const filterButtons = {
-  display: "flex",
-  gap: 8,
-  flexWrap: "wrap",
-};
-
-const btn = {
-  padding: "6px 10px",
-  border: "1px solid #ddd",
-  borderRadius: 8,
-  background: "#fff",
-  fontSize: 12,
-};
-const activeBtn = {
-  padding: "6px 10px",
-  border: "1px solid #22c55e",
-  borderRadius: 8,
-  background: "#22c55e",
-  color: "#fff",
-  fontSize: 12,
-};
-
-const modalOverlay = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.6)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "flex-end",
-  padding: 10,
-  zIndex: 1000,
-};
-const modalBox = {
-  background: "#fff",
-  width: "100%",
-  maxWidth: 520,
-  maxHeight: "85vh",
-  borderRadius: "20px 20px 14px 14px",
-  display: "flex",
-  flexDirection: "column",
-  overflow: "hidden",
-};
-const modalHeader = {
-  padding: 14,
-  borderBottom: "1px solid #eee",
-  display: "flex",
-  justifyContent: "space-between",
-};
-const modalBody = { padding: 14, overflowY: "auto", flex: 1 };
-const closeBtn = {
-  background: "#ef4444",
-  color: "#fff",
-  border: "none",
-  padding: "6px 10px",
-  borderRadius: 8,
-};
-
-const itemCard = {
-  display: "flex",
-  gap: 10,
-  padding: 10,
-  background: "#f8fafc",
-  borderRadius: 12,
-  marginBottom: 8,
-};
-const imgStyle = { width: 50, height: 50, borderRadius: 10 };
-const smallText = { fontSize: 12, color: "#666" };
-
-const btnContainer = { display: "flex", gap: 10, marginTop: 15 };
-const confirmBtn = {
-  flex: 1,
-  padding: 10,
-  background: "#22c55e",
-  color: "#fff",
-  border: "none",
-  borderRadius: 10,
-};
-const cancelBtn = {
-  flex: 1,
-  padding: 10,
-  background: "#ef4444",
-  color: "#fff",
-  border: "none",
-  borderRadius: 10,
-};
-const servedBtn = {
-  width: "100%",
-  padding: 10,
-  background: "#3b82f6",
-  color: "#fff",
-  border: "none",
-  borderRadius: 10,
-};
-const paidBtn = {
-  width: "100%",
-  padding: 12,
-  background: "linear-gradient(135deg, #10b981, #22c55e)",
-  color: "#fff",
-  border: "none",
-  borderRadius: 12,
-  fontWeight: 700,
-};

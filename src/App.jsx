@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   BrowserRouter,
   Route,
@@ -7,7 +7,6 @@ import {
   useNavigate,
   Navigate,
 } from "react-router-dom";
-import { data } from "./data";
 
 // Components
 import Home from "./Home.jsx";
@@ -17,14 +16,17 @@ import Thanks from "./Thanks.jsx";
 import Login from "./Login.jsx";
 import Serveur from "./Serveur.jsx";
 import Register from "./Register.jsx";
-import AdminPage from "./AdminPage.jsx";
+import Admin from "./Admin.jsx";
+import Caisse from "./Caisse.jsx";
 
+const API_BASE_URL = "http://localhost:3005";
+
+// ================= TABLE INIT =================
 function TableInitializer({ setTableNumber }) {
   const { tableNumber } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If tableNumber exists in URL and isn't "0" (our null-placeholder)
     if (tableNumber && tableNumber !== "0") {
       setTableNumber(tableNumber);
       localStorage.setItem("tableNumber", tableNumber);
@@ -32,17 +34,40 @@ function TableInitializer({ setTableNumber }) {
       setTableNumber(null);
       localStorage.removeItem("tableNumber");
     }
-    navigate("/home", { replace: true });
-  }, [tableNumber, setTableNumber, navigate]);
 
-  return <div className="loading-screen">Loading Menu...</div>;
+    navigate("/home", { replace: true });
+  }, [tableNumber]);
+
+  return <div>Loading...</div>;
 }
 
 export default function App() {
-  const [tableNumber, setTableNumber] = useState(() =>
+  const [tableNumber, setTableNumber] = useState(
     localStorage.getItem("tableNumber"),
   );
+
   const [order, setOrder] = useState({});
+  const [menu, setMenu] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  // ================= FETCH MENU =================
+  useEffect(() => {
+    const loadMenu = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/menu`);
+        const data = await res.json();
+        setMenu(data);
+      } catch (err) {
+        console.error("Menu error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMenu();
+  }, []);
+
+  if (loading) return <div>Loading menu...</div>;
 
   return (
     <BrowserRouter>
@@ -52,34 +77,34 @@ export default function App() {
           element={<TableInitializer setTableNumber={setTableNumber} />}
         />
 
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/" element={<Navigate to="/home" />} />
 
+        {/* HOME */}
         <Route
           path="/home"
           element={
-            <Home tableNumber={tableNumber} categories={Object.keys(data)} />
+            <Home tableNumber={tableNumber} categories={Object.keys(menu)} />
           }
         />
 
-        {Object.keys(data).map((path) => {
-          console.log(path);
-          return (
-            <Route
-              key={path}
-              path={`/${path}`}
-              element={
-                <Book
-                  tableNumber={tableNumber}
-                  data={data[path]}
-                  order={order}
-                  setOrder={setOrder}
-                  bookType="menu"
-                />
-              }
-            />
-          );
-        })}
+        {/* MENU ROUTES */}
+        {Object.keys(menu).map((cat) => (
+          <Route
+            key={cat}
+            path={`/${cat}`}
+            element={
+              <Book
+                tableNumber={tableNumber}
+                data={menu[cat]}
+                order={order}
+                setOrder={setOrder}
+                bookType="menu"
+              />
+            }
+          />
+        ))}
 
+        {/* ORDER */}
         <Route
           path="/order"
           element={
@@ -91,6 +116,7 @@ export default function App() {
           }
         />
 
+        {/* THANKS */}
         <Route
           path="/thanks"
           element={
@@ -101,16 +127,15 @@ export default function App() {
             />
           }
         />
+
+        {/* ADMIN */}
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/caisse" element={<Caisse />} />
         <Route path="/serveur" element={<Serveur />} />
 
+        {/* AUTH */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/admin" element={<AdminPage />} />
-
-        <Route
-          path="*"
-          element={<div className="p-10 text-center">404 - Page Not Found</div>}
-        />
       </Routes>
     </BrowserRouter>
   );
