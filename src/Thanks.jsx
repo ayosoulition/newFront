@@ -4,24 +4,19 @@ import Ticket from "./Ticket";
 import Header from "./Header";
 import "./Thanks.css";
 
+const TICKET_KEY = "restaurant_last_ticket";
+
 export default function Thanks({ order, setOrder, tableNumber }) {
   const [confirmation, setConfirmation] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!order || Object.keys(order).length === 0) {
-      const timer = setTimeout(
-        () => navigate("/home", { replace: true }),
-        3000,
-      );
-      return () => clearTimeout(timer);
-    }
-
-    const processOrder = () => {
+    // ── Case 1: arriving with a fresh order ──────────────────────────────────
+    if (order && Object.keys(order).length > 0) {
       const finalReceipt = {
         table: tableNumber || "Walk-in",
-        items: { ...order }, // Shallow copy to be safe
+        items: { ...order },
         total: Object.values(order).reduce(
           (acc, item) => acc + item.price * item.quantity,
           0,
@@ -37,28 +32,43 @@ export default function Thanks({ order, setOrder, tableNumber }) {
         }),
       };
 
-      console.log("Order Processed:", finalReceipt);
+      // Persist so the ticket survives navigation / page refresh
+      localStorage.setItem(TICKET_KEY, JSON.stringify(finalReceipt));
 
       setConfirmation(finalReceipt);
       setOrder({});
       setLoading(false);
-    };
+      return;
+    }
 
-    processOrder();
+    // ── Case 2: returning to /thanks with no active order ────────────────────
+    const saved = localStorage.getItem(TICKET_KEY);
+    if (saved) {
+      try {
+        setConfirmation(JSON.parse(saved));
+        setLoading(false);
+        return;
+      } catch {
+        localStorage.removeItem(TICKET_KEY);
+      }
+    }
 
-    const handleBackButton = () => setOrder({});
-    window.addEventListener("popstate", handleBackButton);
+    // ── Case 3: nothing at all — redirect home ───────────────────────────────
+    const timer = setTimeout(() => navigate("/home", { replace: true }), 3000);
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return () => window.removeEventListener("popstate", handleBackButton);
-  }, []); // Run once on mount
+  const handleNewOrder = () => {
+    localStorage.removeItem(TICKET_KEY);
+    navigate("/home", { replace: true });
+  };
 
   return (
     <main>
       <Header className="menuHeader" tableNumber={tableNumber} />
-
       <div className="ticketThanks">
         {loading ? (
-          <div className="status-msg">Sending order to kitchen...</div>
+          <div className="status-msg">Sending order to kitchen…</div>
         ) : (
           <div className="thanks-container">
             <Ticket
@@ -67,6 +77,9 @@ export default function Thanks({ order, setOrder, tableNumber }) {
               timestamp={confirmation.timestamp}
               ticketType="thanks"
             />
+            <button className="new-order-btn" onClick={handleNewOrder}>
+              New Order
+            </button>
           </div>
         )}
       </div>

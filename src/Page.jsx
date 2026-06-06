@@ -14,7 +14,7 @@ export default function Page({
     <div className={`page-${pageDir} page`}>
       <div className="content">
         <div className="window">
-          <img src={`assets/${item.img}`} alt="" />
+          <img src={`${item.img}`} alt="" />
 
           <div className="info">
             <h2>{item.title}</h2>

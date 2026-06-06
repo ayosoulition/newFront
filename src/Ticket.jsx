@@ -23,19 +23,18 @@ export default function Ticket({
     });
   });
 
-  // 🔥 Listen for real-time table updates
   useEffect(() => {
-    socket.on("table-update", (data) => {
-      if (data.tableId == table) {
-        setTableStatus(data.status);
+    socket.on("tables-update", (tablesData) => {
+      if (tablesData[table]) {
+        setTableStatus(tablesData[table].status);
       }
     });
 
     return () => {
-      socket.off("table-update");
+      socket.off("tables-update");
     };
   }, [table]);
-
+  // 🔥 Listen for real-time table updates
   // 🔥 Initial fetch (important on refresh)
   useEffect(() => {
     const fetchStatus = async () => {

@@ -122,3 +122,19 @@ button:active,
 a:active {
   -webkit-tap-highlight-color: transparent;
 }
+
+.headerBtn--ticket {
+  position: relative;
+}
+
+.headerBtn--ticket::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+}

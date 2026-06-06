@@ -111,11 +111,7 @@ export default function Caisse() {
 
                     {items.map((item) => (
                       <div className="item-card" key={item.id}>
-                        <img
-                          className="item-img"
-                          src={`assets/${item.img}`}
-                          alt=""
-                        />
+                        <img className="item-img" src={`${item.img}`} alt="" />
 
                         <div>
                           <div style={{ fontWeight: 600 }}>{item.title}</div>

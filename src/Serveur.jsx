@@ -301,10 +301,7 @@ export default function Serveur() {
 
                       {items.map((item) => (
                         <div key={item.id} className="item-card">
-                          <img
-                            className="item-img"
-                            src={`assets/${item.img}`}
-                          />
+                          <img className="item-img" src={`${item.img}`} />
                           <div>
                             <div style={{ fontWeight: 600 }}>{item.title}</div>
                             <div className="small-text">Qty: {item.qt}</div>
