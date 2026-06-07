@@ -77,9 +77,6 @@ export default function Thanks({ order, setOrder, tableNumber }) {
               timestamp={confirmation.timestamp}
               ticketType="thanks"
             />
-            <button className="new-order-btn" onClick={handleNewOrder}>
-              New Order
-            </button>
           </div>
         )}
       </div>

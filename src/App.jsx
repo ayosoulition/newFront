@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import ProtectedRoute from "./ProtectedRoute";
+import { AuthProvider, useAuth } from "./AuthContext";
 import {
   BrowserRouter,
   Route,
@@ -41,11 +43,11 @@ function TableInitializer({ setTableNumber }) {
   return <div>Loading...</div>;
 }
 
-export default function App() {
+// ================= INNER APP COMPONENT =================
+function AppContent() {
   const [tableNumber, setTableNumber] = useState(
     localStorage.getItem("tableNumber"),
   );
-
   const [order, setOrder] = useState({});
   const [menu, setMenu] = useState({});
   const [loading, setLoading] = useState(true);
@@ -70,73 +72,97 @@ export default function App() {
   if (loading) return <div>Loading menu...</div>;
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/table/:tableNumber"
-          element={<TableInitializer setTableNumber={setTableNumber} />}
-        />
+    <Routes>
+      <Route
+        path="/table/:tableNumber"
+        element={<TableInitializer setTableNumber={setTableNumber} />}
+      />
 
-        <Route path="/" element={<Navigate to="/home" />} />
+      <Route path="/" element={<Navigate to="/home" />} />
 
-        {/* HOME */}
+      {/* HOME */}
+      <Route
+        path="/home"
+        element={
+          <Home tableNumber={tableNumber} categories={Object.keys(menu)} />
+        }
+      />
+
+      {/* MENU ROUTES */}
+      {Object.keys(menu).map((cat) => (
         <Route
-          path="/home"
+          key={cat}
+          path={`/${cat}`}
           element={
-            <Home tableNumber={tableNumber} categories={Object.keys(menu)} />
-          }
-        />
-
-        {/* MENU ROUTES */}
-        {Object.keys(menu).map((cat) => (
-          <Route
-            key={cat}
-            path={`/${cat}`}
-            element={
-              <Book
-                tableNumber={tableNumber}
-                data={menu[cat]}
-                order={order}
-                setOrder={setOrder}
-                bookType="menu"
-              />
-            }
-          />
-        ))}
-
-        {/* ORDER */}
-        <Route
-          path="/order"
-          element={
-            <Order
-              order={order}
+            <Book
               tableNumber={tableNumber}
+              data={menu[cat]}
+              order={order}
               setOrder={setOrder}
+              bookType="menu"
             />
           }
         />
+      ))}
 
-        {/* THANKS */}
-        <Route
-          path="/thanks"
-          element={
-            <Thanks
-              tableNumber={tableNumber}
-              setOrder={setOrder}
-              order={order}
-            />
-          }
-        />
+      {/* ORDER */}
+      <Route
+        path="/order"
+        element={
+          <Order order={order} tableNumber={tableNumber} setOrder={setOrder} />
+        }
+      />
 
-        {/* ADMIN */}
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/caisse" element={<Caisse />} />
-        <Route path="/serveur" element={<Serveur />} />
+      {/* THANKS */}
+      <Route
+        path="/thanks"
+        element={
+          <Thanks tableNumber={tableNumber} setOrder={setOrder} order={order} />
+        }
+      />
 
-        {/* AUTH */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
-    </BrowserRouter>
+      {/* PROTECTED ADMIN ROUTES */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute role="admin">
+            <Admin />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/serveur"
+        element={
+          <ProtectedRoute role="serveur">
+            <Serveur />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/caisse"
+        element={
+          <ProtectedRoute role="caisse">
+            <Caisse />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* AUTH */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+    </Routes>
+  );
+}
+
+// ================= MAIN APP WITH PROVIDER =================
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

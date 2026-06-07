@@ -1,24 +1,29 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
+import { useAuth } from "./AuthContext";
 import "./Serveur.css";
 
 const API_BASE_URL = "http://localhost:3005";
 const socket = io(API_BASE_URL);
 
 export default function Caisse() {
+  const { logout, token } = useAuth();
   const [tables, setTables] = useState({});
   const [orders, setOrders] = useState({});
   const [selectedTable, setSelectedTable] = useState(null);
-
   const prevRef = useRef({});
 
   // ================= SOCKET =================
   useEffect(() => {
-    fetch(`${API_BASE_URL}/tables`)
+    fetch(`${API_BASE_URL}/tables`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => r.json())
       .then(setTables);
 
-    fetch(`${API_BASE_URL}/orders`)
+    fetch(`${API_BASE_URL}/orders`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => r.json())
       .then(setOrders);
 
@@ -35,13 +40,16 @@ export default function Caisse() {
       socket.off("tables-update");
       socket.off("new-order");
     };
-  }, []);
+  }, [token]);
 
   // ================= API =================
   const updateTable = (id, action) => {
     return fetch(`${API_BASE_URL}/tables/${id}/status`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ action }),
     });
   };
@@ -50,8 +58,24 @@ export default function Caisse() {
   const markReady = async () => {
     if (!selectedTable) return;
 
-    await updateTable(selectedTable, "ready");
-    setSelectedTable(null);
+    try {
+      console.log("[v0] Marking table ready:", selectedTable, "Token:", token);
+      const response = await updateTable(selectedTable, "ready");
+      console.log("[v0] Response status:", response.status);
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error("[v0] Error response:", error);
+        alert(`Error: ${response.status} - ${error}`);
+        return;
+      }
+
+      console.log("[v0] Table marked as ready successfully");
+      setSelectedTable(null);
+    } catch (error) {
+      console.error("[v0] Error marking table ready:", error);
+      alert("Error marking table ready: " + error.message);
+    }
   };
 
   // ================= FILTER =================
@@ -70,6 +94,15 @@ export default function Caisse() {
     <div className="dashboard-container">
       <header className="app-header">
         <div className="app-logo">Caisse Interface</div>
+        <nav className="header-nav">
+          <button
+            className="nav-link"
+            onClick={logout}
+            style={{ marginLeft: "auto", background: "#dc3545" }}
+          >
+            🚪 Logout
+          </button>
+        </nav>
       </header>
 
       <main className="main-content">
@@ -89,11 +122,10 @@ export default function Caisse() {
         </section>
       </main>
 
-      {/* ================= MODAL (MATCH SERVEUR) ================= */}
+      {/* MODAL */}
       {selectedTable && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            {/* HEADER */}
             <div className="modal-header">
               <h3>Table {selectedTable}</h3>
               <button className="close-btn" onClick={closeModal}>
@@ -101,9 +133,7 @@ export default function Caisse() {
               </button>
             </div>
 
-            {/* BODY */}
             <div className="modal-body">
-              {/* ORDER LIST */}
               {getOrder(selectedTable) ? (
                 Object.entries(getOrder(selectedTable)).map(([cat, items]) => (
                   <div key={cat}>
@@ -125,7 +155,6 @@ export default function Caisse() {
                 <p className="small-text">No order found</p>
               )}
 
-              {/* ACTION BUTTON (MATCH STYLE SYSTEM) */}
               <div className="btn-container">
                 <button className="btn-ready" onClick={markReady}>
                   🍳 Marquer comme prêt

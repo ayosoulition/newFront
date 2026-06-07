@@ -1,25 +1,32 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import { useAuth } from "./AuthContext";
 import "./Admin.css";
 
 const API_BASE_URL = "http://localhost:3005";
 const socket = io(API_BASE_URL);
 
 // ─── Image upload (fires immediately on file pick) ───────────────────────────
-const uploadImage = async (category, itemId, file, onStatus) => {
+const uploadImage = async (category, itemId, file, onStatus, token) => {
   onStatus("saving");
   try {
     const formData = new FormData();
     formData.append("image", file);
     const uploadRes = await fetch(`${API_BASE_URL}/upload`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: formData,
     });
     if (!uploadRes.ok) throw new Error("Upload failed");
     const { filename } = await uploadRes.json();
     const putRes = await fetch(`${API_BASE_URL}/menu/${category}/${itemId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ img: filename }),
     });
     if (!putRes.ok) throw new Error("Save failed");
@@ -56,17 +63,16 @@ function SaveStatus({ status }) {
 }
 
 // ─── Single editable menu item row ──────────────────────────────────────────
-function MenuItemRow({ item, category, onDelete }) {
+function MenuItemRow({ item, category, onDelete, token }) {
   const [draft, setDraft] = useState({
     title: item.title,
     description: item.description,
     price: item.price,
   });
-  const [status, setStatus] = useState("idle"); // idle | saving | success | error
+  const [status, setStatus] = useState("idle");
   const [imgStatus, setImgStatus] = useState("idle");
   const timerRef = useRef(null);
 
-  // Track whether anything actually changed
   const isDirty =
     draft.title !== item.title ||
     draft.description !== item.description ||
@@ -92,7 +98,10 @@ function MenuItemRow({ item, category, onDelete }) {
     try {
       const res = await fetch(`${API_BASE_URL}/menu/${category}/${item.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           title: draft.title,
           description: draft.description,
@@ -108,7 +117,6 @@ function MenuItemRow({ item, category, onDelete }) {
 
   return (
     <div className="adm-menu-item">
-      {/* ── Thumbnail ── */}
       <div className="adm-menu-thumb">
         <img className="adm-menu-image" src={item.img} alt={item.title} />
         <label
@@ -129,13 +137,18 @@ function MenuItemRow({ item, category, onDelete }) {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file)
-                uploadImage(category, item.id, file, setImgStatusWithReset);
+                uploadImage(
+                  category,
+                  item.id,
+                  file,
+                  setImgStatusWithReset,
+                  token,
+                );
             }}
           />
         </label>
       </div>
 
-      {/* ── Fields ── */}
       <div className="adm-menu-fields">
         <div className="adm-menu-field">
           <label>Title</label>
@@ -168,7 +181,6 @@ function MenuItemRow({ item, category, onDelete }) {
         </div>
       </div>
 
-      {/* ── Actions ── */}
       <div className="adm-menu-row-actions">
         <SaveStatus status={status} />
         <button
@@ -191,6 +203,7 @@ function MenuItemRow({ item, category, onDelete }) {
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function Admin() {
+  const { logout, token } = useAuth();
   const [activePage, setActivePage] = useState("history");
   const [history, setHistory] = useState([]);
   const [search, setSearch] = useState("");
@@ -204,11 +217,15 @@ export default function Admin() {
     img: "",
   });
   const [loading, setLoading] = useState(false);
-  const [addStatus, setAddStatus] = useState("idle"); // idle | saving | success | error
+  const [addStatus, setAddStatus] = useState("idle");
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/history`);
+      const res = await fetch(`${API_BASE_URL}/history`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       setHistory(data.data || []);
     } catch (err) {
@@ -234,11 +251,9 @@ export default function Admin() {
   useEffect(() => {
     socket.on("menu-update", (m) => setMenu(m));
     socket.on("new-order", () => fetchHistory());
-    socket.on("tables-update", () => {});
     return () => {
       socket.off("menu-update");
       socket.off("new-order");
-      socket.off("tables-update");
     };
   }, []);
 
@@ -282,12 +297,16 @@ export default function Admin() {
     try {
       const res = await fetch(`${API_BASE_URL}/menu/${selectedCategory}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ ...newItem, price: Number(newItem.price) }),
       });
       if (!res.ok) throw new Error("Failed");
       setNewItem({ title: "", description: "", price: "", img: "" });
       setAddStatus("success");
+      fetchMenu();
     } catch {
       setAddStatus("error");
     } finally {
@@ -300,7 +319,11 @@ export default function Admin() {
     try {
       await fetch(`${API_BASE_URL}/menu/${category}/${itemId}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+      fetchMenu();
     } catch (err) {
       console.error(err);
     }
@@ -308,7 +331,6 @@ export default function Admin() {
 
   return (
     <div className="adm-page">
-      {/* ══════════════════════════════════════ SIDEBAR */}
       <aside className="adm-sidebar">
         <div className="adm-sidebar-top">
           <div className="adm-logo">
@@ -346,12 +368,26 @@ export default function Admin() {
             <span>↻</span>
             {loading ? "Refreshing…" : "Refresh data"}
           </button>
+          <button
+            className="adm-logout-btn"
+            onClick={logout}
+            style={{
+              marginTop: "10px",
+              padding: "10px",
+              width: "100%",
+              background: "#dc3545",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            🚪 Logout
+          </button>
         </div>
       </aside>
 
-      {/* ══════════════════════════════════════ MAIN */}
       <main className="adm-main">
-        {/* ── Stats ── */}
         <div className="adm-stats">
           <div className="adm-stat-card">
             <div className="adm-stat-icon">📋</div>
@@ -375,7 +411,6 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* ══ HISTORY PAGE ══ */}
         {activePage === "history" && (
           <>
             <div className="adm-page-header">
@@ -461,7 +496,6 @@ export default function Admin() {
           </>
         )}
 
-        {/* ══ MENU PAGE ══ */}
         {activePage === "menu" && (
           <>
             <div className="adm-page-header">
@@ -471,7 +505,6 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Add form */}
             <div className="adm-add-form">
               <h2>➕ Add New Item</h2>
               <div className="adm-form-grid">
@@ -521,6 +554,9 @@ export default function Admin() {
                       fd.append("image", file);
                       const res = await fetch(`${API_BASE_URL}/upload`, {
                         method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
                         body: fd,
                       });
                       const data = await res.json();
@@ -551,7 +587,6 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Menu list */}
             {Object.entries(menu).map(([category, rows]) => {
               const items = rows.flat();
               return (
@@ -570,6 +605,7 @@ export default function Admin() {
                       item={item}
                       category={category}
                       onDelete={deleteItem}
+                      token={token}
                     />
                   ))}
                 </div>

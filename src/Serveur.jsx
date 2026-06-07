@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
+import { useAuth } from "./AuthContext";
 import "./Serveur.css";
 
 const API_BASE_URL = "http://localhost:3005";
 const socket = io(API_BASE_URL);
 
 export default function Serveur() {
+  const { logout, token } = useAuth();
   const [tables, setTables] = useState({});
   const [selectedTable, setSelectedTable] = useState(null);
   const [orders, setOrders] = useState({});
-
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTable, setSearchTable] = useState("");
 
@@ -49,11 +50,15 @@ export default function Serveur() {
 
   // ================= SOCKET =================
   useEffect(() => {
-    fetch(`${API_BASE_URL}/orders`)
+    fetch(`${API_BASE_URL}/orders`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((res) => res.json())
       .then(setOrders);
 
-    fetch(`${API_BASE_URL}/tables`)
+    fetch(`${API_BASE_URL}/tables`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((res) => res.json())
       .then(setTables);
 
@@ -105,13 +110,16 @@ export default function Serveur() {
       socket.off("new-order");
       socket.off("order-ready");
     };
-  }, []);
+  }, [token]);
 
   // ================= API =================
   const updateTableStatus = async (tableId, action) => {
     return fetch(`${API_BASE_URL}/tables/${tableId}/status`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ action }),
     });
   };
@@ -210,6 +218,13 @@ export default function Serveur() {
           <button className="nav-link active">🍽️ Tables</button>
           <button className="nav-link">📋 Commandes</button>
           <button className="nav-link">📜 Historique</button>
+          <button
+            className="nav-link"
+            onClick={logout}
+            style={{ background: "#dc3545", marginLeft: "auto" }}
+          >
+            🚪 Logout
+          </button>
         </nav>
       </header>
 
@@ -301,7 +316,11 @@ export default function Serveur() {
 
                       {items.map((item) => (
                         <div key={item.id} className="item-card">
-                          <img className="item-img" src={`${item.img}`} />
+                          <img
+                            className="item-img"
+                            src={`${item.img}`}
+                            alt=""
+                          />
                           <div>
                             <div style={{ fontWeight: 600 }}>{item.title}</div>
                             <div className="small-text">Qty: {item.qt}</div>
