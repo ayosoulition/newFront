@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3005");
+const API_BASE_URL = "http://localhost:3005";
 
 export default function Ticket({
   order,
@@ -11,12 +11,11 @@ export default function Ticket({
   timestamp,
 }) {
   const [tableStatus, setTableStatus] = useState(null);
+  const socketRef = useRef(null);
 
-  let lien = "http://localhost:3005";
   const keys = Object.keys(order || {});
 
   let total = 0;
-
   keys.forEach((category) => {
     order[category].forEach((element) => {
       total += element.price * element.qt;
@@ -24,44 +23,29 @@ export default function Ticket({
   });
 
   useEffect(() => {
+    if (!table) return;
+
+    // Fetch initial status
+    fetch(`${API_BASE_URL}/tables`)
+      .then((r) => r.json())
+      .then((data) => { if (data[table]) setTableStatus(data[table].status); })
+      .catch(() => {});
+
+    // Listen for real-time updates
+    const socket = io(API_BASE_URL);
+    socketRef.current = socket;
     socket.on("tables-update", (tablesData) => {
-      if (tablesData[table]) {
-        setTableStatus(tablesData[table].status);
-      }
+      if (tablesData[table]) setTableStatus(tablesData[table].status);
     });
 
-    return () => {
-      socket.off("tables-update");
-    };
-  }, [table]);
-  // 🔥 Listen for real-time table updates
-  // 🔥 Initial fetch (important on refresh)
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch(lien + "/tables");
-        const data = await res.json();
-
-        if (data[table]) {
-          setTableStatus(data[table].status);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchStatus();
+    return () => socket.disconnect();
   }, [table]);
 
-  // 🔥 REQUEST BILL
   const requestBill = async () => {
     try {
-      await fetch(lien + "/tables/" + table + "/status", {
+      await fetch(`${API_BASE_URL}/tables/${table}/bill`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ action: "bill" }),
+        headers: { "Content-Type": "application/json" },
       });
     } catch (err) {
       console.error(err);

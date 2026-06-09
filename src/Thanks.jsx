@@ -70,14 +70,35 @@ export default function Thanks({ order, setOrder, tableNumber }) {
         {loading ? (
           <div className="status-msg">Sending order to kitchen…</div>
         ) : (
-          <div className="thanks-container">
-            <Ticket
-              order={confirmation.items}
-              table={confirmation.table}
-              timestamp={confirmation.timestamp}
-              ticketType="thanks"
-            />
-          </div>
+          <>
+            <div className="thanks-hero">
+              <div className="thanks-check-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <h2 className="thanks-title">Order Confirmed</h2>
+              <p className="thanks-subtitle">Your order is on its way to the kitchen</p>
+              {confirmation.table && (
+                <span className="thanks-table-chip">
+                  {isNaN(confirmation.table) ? confirmation.table : `Table ${confirmation.table}`}
+                </span>
+              )}
+            </div>
+
+            <div className="thanks-container">
+              <Ticket
+                order={confirmation.items}
+                table={confirmation.table}
+                timestamp={confirmation.timestamp}
+                ticketType="thanks"
+              />
+            </div>
+
+            <button className="thanks-new-order" onClick={handleNewOrder}>
+              Place New Order
+            </button>
+          </>
         )}
       </div>
     </main>

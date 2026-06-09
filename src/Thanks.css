@@ -1,55 +1,312 @@
+/* ═══════════════════════════════════════════════════════════════
+   Thanks — Order confirmation / receipt page
+   Dark ambient backdrop · floating receipt card
+═══════════════════════════════════════════════════════════════ */
+
+/* ─── Page shell ─────────────────────────────────────────────── */
 .ticketThanks {
-  padding: 1rem;
+  background: #141211;
+  min-height: calc(100vh - 56px);
+  padding: 2.5rem 1rem 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
 }
 
-.ticketThanks h1 {
+/* ─── Loading / redirect state ───────────────────────────────── */
+.status-msg {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 5rem;
+  letter-spacing: 0.2px;
+}
+
+/* ─── Success hero ───────────────────────────────────────────── */
+.thanks-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
   text-align: center;
 }
 
-.ticketThanks .thanksText {
-  padding: 2rem;
+.thanks-check-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  margin-bottom: 0.3rem;
+  box-shadow:
+    0 4px 22px rgba(34, 197, 94, 0.38),
+    0 0 0 8px rgba(34, 197, 94, 0.1);
 }
 
-.pay {
+.thanks-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.thanks-subtitle {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.42);
+  font-weight: 400;
+}
+
+.thanks-table-chip {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50px;
+  padding: 4px 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.4px;
+  margin-top: 0.2rem;
+}
+
+/* ─── Receipt card ───────────────────────────────────────────── */
+.thanks-container {
+  width: 100%;
+  max-width: 440px;
+  background: #fefcf8;
+  border-radius: 16px;
+  box-shadow:
+    0 8px 48px rgba(0, 0, 0, 0.32),
+    0 2px 8px rgba(0, 0, 0, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+/* ─── Receipt heading ────────────────────────────────────────── */
+.ticketThanks h1 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.15px;
+  padding: 1.5rem 1.5rem 0;
+  line-height: 1.3;
+}
+
+/* ─── Thanks description ─────────────────────────────────────── */
+.ticketThanks .thanksText {
+  font-size: 0.78rem;
+  color: #999;
+  font-weight: 400;
+  line-height: 1.6;
+  padding: 0.3rem 1.5rem 0;
+  margin: 0;
+}
+
+/* Timestamp — sibling immediately after .thanksText */
+.ticketThanks .thanksText + p {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #b8b0a5;
+  letter-spacing: 0.25px;
+  padding: 0.3rem 1.5rem 1.1rem;
+  margin: 0;
+  border-bottom: 1px solid #ece8e0;
+}
+
+/* ─── Items ──────────────────────────────────────────────────── */
+.ticketThanks .ticket {
+  padding: 0 1.5rem;
+}
+
+.ticketThanks .ticket h2 {
+  padding: 0.8rem 0 0.35rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #c8c0b5;
+  border-bottom: 1px solid #ece8e0;
+}
+
+.ticketThanks .item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed #ece8de;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #2a2825;
+  line-height: 1.35;
+  /* reset Book.css right-padding that makes room for abs-positioned badge */
+  position: static;
+}
+
+.ticketThanks .itemQt {
+  /* pull out of Book.css absolute positioning */
+  position: static;
+  transform: none;
+  top: auto;
+  right: auto;
+  background: #c41e3a;
+  color: #fff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── Total ──────────────────────────────────────────────────── */
+.ticketThanks .total {
+  padding: 0 1.5rem;
+}
+
+.ticketThanks .total hr {
+  border: none;
+  border-top: 2px dashed #ddd7cc;
+  margin: 0.8rem 0 0;
+}
+
+.ticketThanks .total > div {
+  padding: 0.7rem 0 0.4rem;
+}
+
+.ticketThanks .price {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #555;
+}
+
+.ticketThanks .price .mainColor {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #c41e3a;
+}
+
+/* ─── Pay section ────────────────────────────────────────────── */
+.ticketThanks .pay {
+  padding: 0 1.5rem 1.5rem;
+  border-top: 1px solid #ece8e0;
+  margin-top: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
+  align-items: stretch;
+  gap: 0.75rem;
+  height: auto;
 }
 
+.ticketThanks .pay p {
+  font-size: 0.72rem;
+  color: #c0b8ad;
+  text-align: center;
+  padding-top: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ─── Pay button ─────────────────────────────────────────────── */
 .payBtn {
-  width: 50%;
-  padding: 14px 16px;
+  width: 100%;
+  padding: 13px 16px;
   border: none;
-  border-radius: 16px;
-  background-color: #dc143c;
-  color: white;
-  font-weight: bold;
-  font-size: 18px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #d42244 0%, #9e1830 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.25);
-  transition: all 0.2s ease;
+  box-shadow:
+    0 4px 20px rgba(196, 30, 58, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-/* Active Hover effects */
 .payBtn:not(:disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+  box-shadow:
+    0 7px 26px rgba(196, 30, 58, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Active Press effect */
 .payBtn:not(:disabled):active {
   transform: scale(0.98);
 }
 
-/* Inactive/Disabled Styles */
 .payBtn:disabled {
-  background-color: #9ca3af; /* Gray tint color */
-  color: #e5e7eb;
-  cursor: not-allowed; /* Changes the cursor to a block symbol */
-  box-shadow: none; /* Removes glow effect when unavailable */
-  opacity: 0.6; /* Makes it visually distinct and muted */
-  transform: none; /* Prevents moving on hover */
+  background: #e8e2d8;
+  color: #bbb5aa;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 1;
+  transform: none;
+}
+
+/* ─── New Order CTA ──────────────────────────────────────────── */
+.thanks-new-order {
+  width: 100%;
+  max-width: 440px;
+  padding: 13px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.thanks-new-order:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.88);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.thanks-new-order:active {
+  transform: scale(0.98);
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .ticketThanks {
+    padding: 2rem 0.75rem 3rem;
+    gap: 1.5rem;
+  }
+
+  .thanks-check-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .thanks-title { font-size: 1.25rem; }
+
+  .ticketThanks h1,
+  .ticketThanks .thanksText,
+  .ticketThanks .thanksText + p,
+  .ticketThanks .ticket,
+  .ticketThanks .total,
+  .ticketThanks .pay {
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+  }
+
+  .ticketThanks h1 { padding-top: 1.25rem; }
 }

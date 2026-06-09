@@ -1,50 +1,164 @@
+/* ═══════════════════════════════════════════════════════════════
+   Book / Menu — 3D page-flip component styles
+   !! CRITICAL: do not change any transform / perspective values !!
+═══════════════════════════════════════════════════════════════ */
+
+/* ─── Shared accent colour ───────────────────────────────────── */
+.mainColor { color: #c41e3a; }
+
+/* ─── Menu page shell ────────────────────────────────────────── */
+.menuPage {
+  width: 100%;
+  height: 100%;
+}
+
+/* Dark ambient "table" that the book sits on */
+.menu {
+  background: #161210;
+  min-height: calc(100vh - 56px);
+  padding: 1.25rem 0.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ─── Book stage (wrapper) ───────────────────────────────────── */
 .wrapper {
   position: relative;
   width: 100%;
+  max-width: 680px;
   height: 100%;
   max-height: 800px;
-  padding: 2rem;
+  padding: 1.75rem;
 }
 
-.mainColor {
-  color: crimson;
+/* ─── Menu header ─────────────────────────────────────────────
+   Scoped to .menuPage so it wins the specificity race vs Home.css
+─────────────────────────────────────────────────────────────── */
+.menuPage .menuHeader {
+  background: linear-gradient(160deg, #c41e3a 0%, #9c1830 100%);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 14px rgba(156, 24, 48, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.menuPage .menuHeader nav {
+  width: 100%;
+}
+
+.menuPage .menuHeader nav ul {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+  width: 100%;
+  height: 56px;
+  padding: 0 1.25rem;
+  font-size: inherit;
+}
+
+.menuPage .menuHeader .headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.18s;
+}
+.menuPage .menuHeader .headerBtn:hover { background: rgba(255, 255, 255, 0.22); }
+
+.menuPage .menuHeader .header-table-chip {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  padding: 4px 14px;
+  letter-spacing: 0.3px;
+}
+
+/* Ticket SVG icon: make it white */
+.menuPage .menuHeader svg path { stroke: rgba(255, 255, 255, 0.85); }
+
+/* ─── Standalone headerBtn (outside menuHeader) ──────────────── */
+.headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: black;
+}
+
+/* ─── Covers ──────────────────────────────────────────────────
+   CRITICAL: position, top, left, width, height, transform-origin,
+   z-index, will-change, and the base transform must stay exactly
+   as they are.
+─────────────────────────────────────────────────────────────── */
 .cover {
   position: absolute;
   top: 0;
   left: 0;
   width: 50%;
   height: 100%;
-  background: crimson;
-  border-top-left-radius: 0.6rem;
-  border-bottom-left-radius: 0.6rem;
+  background: linear-gradient(148deg, #8b0e24 0%, #c62040 25%, #a8192e 55%, #6e0d1e 100%);
+  border-top-left-radius: 0.55rem;
+  border-bottom-left-radius: 0.55rem;
   transform-origin: right;
-  box-shadow: var(--box-shadow);
+  box-shadow:
+    inset -8px 0 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 6px 32px rgba(0, 0, 0, 0.4);
   z-index: 0;
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
   will-change: transform;
+  overflow: hidden;
 }
 
-.cover.cover-left {
-  z-index: 0;
+/* Inset decorative frame */
+.cover.cover-left::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 3px;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.03);
 }
 
-.back-first {
-  color: red;
+/* "MENU" watermark */
+.cover.cover-left::after {
+  content: "MENU";
   position: absolute;
   top: 50%;
-  right: 0;
-  font-size: 3rem;
-  z-index: 0;
-  cursor: pointer;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.13);
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 9px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
-.cover.cover-right.turn {
-  transform: rotateY(180deg);
-}
+.cover.cover-left { z-index: 0; }
 
+/* CRITICAL — must not change */
+.cover.cover-right.turn { transform: rotateY(180deg); }
+
+/* ─── Book container ──────────────────────────────────────────
+   CRITICAL: perspective: 250rem must not change
+─────────────────────────────────────────────────────────────── */
 .book {
   position: relative;
   width: 100%;
@@ -52,15 +166,37 @@
   perspective: 250rem;
 }
 
+/* Spine shadow line */
+.book::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 1px);
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.2) 20%,
+    rgba(0, 0, 0, 0.2) 80%,
+    transparent 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ─── Book pages ──────────────────────────────────────────────
+   CRITICAL: position:absolute, width:50%, height:100% must stay
+─────────────────────────────────────────────────────────────── */
 .book .book-page {
   position: absolute;
   width: 50%;
   height: 100%;
-  background: white;
-  box-shadow: 0 0 0.6rem rgba(0, 0, 0, 0.1);
+  background: #fefcf8;
   will-change: transform;
 }
 
+/* CRITICAL — transform properties must not change */
 .book-page.page-right {
   position: absolute;
   right: 0;
@@ -69,56 +205,52 @@
   transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
+/* Left page: order ticket */
 .book-page.page-left {
-  padding: 0 0.5rem;
-  overflow-y: scroll;
+  padding: 0.9rem 0.75rem 2.5rem 0.8rem;
+  overflow-y: auto;
+  background: #faf7f0;
+  box-shadow:
+    inset -1px 0 0 rgba(0, 0, 0, 0.07),
+    inset 0 0 24px rgba(0, 0, 0, 0.025);
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
 }
+.book-page.page-left::-webkit-scrollbar { width: 3px; }
+.book-page.page-left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
 
-h1 {
-  font-size: 1.5rem;
-}
-
-.ticket {
-  padding: 0.5rem 0;
-}
-
-.ticket h2 {
-  padding-bottom: 0.5rem;
-}
-
-.item span {
-  padding: 0 0.2rem;
-}
-
-.item {
-  position: relative;
-  padding: 1.5rem 0 0.5rem 0;
-  border-top: solid 1px black;
-}
-
-.itemQt {
-  color: white;
-  background: crimson;
+/* ─── Back-to-first button (spine center) ────────────────────── */
+.back-first {
   position: absolute;
-  top: 5px;
-  right: 0;
-  border-top-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  cursor: pointer;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: #fff;
+  color: #c41e3a;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-
-.total {
-  font-weight: bold;
-  padding-bottom: 1rem;
+.back-first:hover {
+  transform: translate(-50%, -50%) scale(1.14);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
+.back-first:active { transform: translate(-50%, -50%) scale(0.92); }
 
-.total div {
-  padding-top: 1rem;
-}
+/* CRITICAL — must not change */
+.book-page.page-right.turn { transform: rotateY(-180deg); }
 
-.book-page.page-right.turn {
-  transform: rotateY(-180deg);
-}
-
+/* CRITICAL — must not change */
 .book-page .page-front,
 .book-page .page-back {
   position: absolute;
@@ -129,73 +261,159 @@ h1 {
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
   will-change: transform;
+  background-image: url("../public/assets/backgroundPaper.png");
+  background-size: cover;
+  background-position: center;
 }
 
-.book-page .page-front {
-  transform: rotateY(0deg) translateZ(1px);
-}
+/* CRITICAL — must not change */
+.book-page .page-front { transform: rotateY(0deg) translateZ(1px); }
 
-.book-page .page-back {
-  transform: rotateY(180deg) translateZ(1px);
-}
+/* CRITICAL — must not change */
+.book-page .page-back  { transform: rotateY(180deg) translateZ(1px); }
 
-.menuHeader {
-  background: crimson;
-  padding: 1rem;
-}
-
-.menuHeader nav ul {
-  font-size: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  list-style: none;
-}
-
-.menuPage {
-  width: 100%;
-  height: 100%;
-}
-
-.menu {
-  margin-top: 1rem;
-}
-
+/* ─── Page-turn nav buttons ──────────────────────────────────── */
 .nextprev-btn {
   position: absolute;
-  bottom: 0.9rem;
-  width: 2rem;
-  height: 2rem;
+  bottom: 0.75rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 2rem;
+  font-size: 1.3rem;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  background: crimson;
-  color: white;
+  background: #c41e3a;
+  color: #fff;
+  box-shadow:
+    0 2px 10px rgba(196, 30, 58, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s;
+  z-index: 10;
+}
+.nextprev-btn:hover {
+  background: #a0182e;
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(196, 30, 58, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.nextprev-btn:active { transform: scale(0.9); }
+
+.nextprev-btn-front { right: 0.6rem; }
+.nextprev-btn-back  { left: 0.6rem; }
+
+/* ─── Ticket / left page typography ─────────────────────────── */
+h1 { font-size: 1.3rem; }
+
+/* Empty-order state */
+.browse {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0.1rem;
 }
 
-.nextprev-btn-front {
-  right: 0.5rem;
+.browse > p {
+  margin-top: 0.65rem;
+  font-size: 0.74rem;
+  color: #aaa;
+  line-height: 1.6;
 }
 
-.nextprev-btn-back {
-  left: 0.5rem;
+/* Category section */
+.ticket { padding: 0.2rem 0; }
+
+.ticket h2 {
+  padding: 0.55rem 0 0.3rem;
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  color: #bbb;
+  border-bottom: 1px solid #ece8de;
 }
 
-.headerBtn {
-  width: 2rem;
-  height: 2rem;
-  color: black;
+/* Order item row */
+.item {
+  position: relative;
+  padding: 0.55rem 2.1rem 0.55rem 0.05rem;
+  border-bottom: 1px dashed #ede8de;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #222;
+  line-height: 1.3;
 }
+
+/* Quantity badge */
+.itemQt {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background: #c41e3a;
+  color: #fff;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Total block */
+.total {
+  padding-bottom: 0.5rem;
+}
+
+.total hr {
+  border: none;
+  border-top: 2px solid #e6e0d3;
+  margin: 0.65rem 0 0;
+}
+
+.total div { padding-top: 0.5rem; }
 
 .price {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1a1a1a;
 }
 
+/* ─── Send / Confirm button ──────────────────────────────────── */
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 0 0;
+}
+
+.sendOrder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #d42244 0%, #9e1830 100%);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.7rem 3.5rem;
+  font-size: 0.95rem;
+  border-radius: 50px;
+  letter-spacing: 0.4px;
+  box-shadow:
+    0 3px 18px rgba(196, 30, 58, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+.sendOrder:hover {
+  background: linear-gradient(160deg, #c41e3a 0%, #8b1428 100%);
+  box-shadow: 0 6px 24px rgba(196, 30, 58, 0.54), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+.sendOrder:active { transform: scale(0.97); }
+
+/* ─── Misc ───────────────────────────────────────────────────── */
+.confirmOrder {}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .wrapper {
-    position: relative;
     width: 99%;
     max-height: 500px;
     height: 80vh;
@@ -203,26 +421,41 @@ h1 {
   }
 }
 
-.sendOrder {
-  background: crimson;
-  color: white;
-  font-weight: bold;
-  padding: 0.5rem 4rem;
-  font-size: 1rem;
-  border-radius: 22px;
+@media (max-width: 600px) {
+  .wrapper {
+    max-height: 450px;
+    height: 74vh;
+    padding: 0.4rem;
+  }
+
+  .nextprev-btn {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: 1.15rem;
+    bottom: 0.5rem;
+  }
+
+  .back-first {
+    width: 1.7rem;
+    height: 1.7rem;
+    font-size: 0.95rem;
+  }
+
+  .book::after { display: none; }
+
+  .cover.cover-left::after { font-size: 1.6rem; letter-spacing: 6px; }
+
+  .menuPage .menuHeader { height: 50px; }
+
+  h1 { font-size: 1.15rem; }
+
+  .item { font-size: 0.73rem; }
 }
 
-.actionBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 0;
-}
-
-.browse p {
-  padding-top: 2rem;
-  font-size: 1.2rem;
-}
-
-.confirmOrder {
+@media (max-width: 380px) {
+  .wrapper {
+    max-height: 400px;
+    height: 70vh;
+    padding: 0.3rem;
+  }
 }

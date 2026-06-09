@@ -1,15 +1,38 @@
+/* ─── Ticket icon button ─────────────────────────────────────── */
 .headerBtn--ticket {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.18s;
 }
 
+.headerBtn--ticket:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Amber live-order indicator dot */
 .headerBtn--ticket::after {
   content: "";
   position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 8px;
-  height: 8px;
-  background: #ef4444;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  background: #f59e0b;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+/* Dark-nav variant (home page) */
+.home-nav .headerBtn--ticket {
+  background: rgba(255, 255, 255, 0.08);
+}
+.home-nav .headerBtn--ticket:hover {
+  background: rgba(255, 255, 255, 0.15);
 }

@@ -19,12 +19,12 @@ export default function Header({ tableNumber, className }) {
             </Link>
           </li>
 
-          {tableNumber ? <li>Table Number {tableNumber}</li> : null}
+          {tableNumber ? <li className="header-table-chip">Table {tableNumber}</li> : null}
 
           {/* Ticket link — only shown when a saved ticket exists */}
           {hasTicket && (
             <li>
-              <Link to="/thanks">
+              <Link to="/thanks" className="headerBtn--ticket">
                 <svg
                   width={30}
                   height={30}

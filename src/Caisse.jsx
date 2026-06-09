@@ -1,165 +1,203 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
+import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
 import "./Serveur.css";
 
 const API_BASE_URL = "http://localhost:3005";
-const socket = io(API_BASE_URL);
+
+const getTotal = (orderObj) => {
+  if (!orderObj) return 0;
+  return Object.values(orderObj).reduce(
+    (s, items) => s + items.reduce((a, i) => a + i.price * i.qt, 0), 0
+  );
+};
+
+const getItemCount = (orderObj) => {
+  if (!orderObj) return 0;
+  return Object.values(orderObj).reduce(
+    (s, items) => s + items.reduce((a, i) => a + i.qt, 0), 0
+  );
+};
 
 export default function Caisse() {
   const { logout, token } = useAuth();
-  const [tables, setTables] = useState({});
-  const [orders, setOrders] = useState({});
+  const socketRef = useRef(null);
+
+  const [tables, setTables]             = useState({});
+  const [orders, setOrders]             = useState({});
   const [selectedTable, setSelectedTable] = useState(null);
-  const prevRef = useRef({});
 
-  // ================= SOCKET =================
+  // ── Socket ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    fetch(`${API_BASE_URL}/tables`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then(setTables);
+    if (!token) return;
 
-    fetch(`${API_BASE_URL}/orders`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then(setOrders);
+    Promise.all([
+      fetch(`${API_BASE_URL}/tables`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      fetch(`${API_BASE_URL}/orders`,  { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+    ])
+      .then(([tablesData, ordersData]) => {
+        setTables(tablesData);
+        setOrders(ordersData);
+      })
+      .catch(() => toast.error("Erreur de chargement", { position: "top-right" }));
 
-    socket.on("tables-update", (data) => {
-      prevRef.current = data;
-      setTables(data);
-    });
+    const socket = io(API_BASE_URL);
+    socketRef.current = socket;
 
-    socket.on("new-order", (data) => {
-      setOrders(data);
-    });
+    socket.on("tables-update", setTables);
+    socket.on("new-order", setOrders);
 
-    return () => {
-      socket.off("tables-update");
-      socket.off("new-order");
-    };
+    return () => socket.disconnect();
   }, [token]);
 
-  // ================= API =================
-  const updateTable = (id, action) => {
-    return fetch(`${API_BASE_URL}/tables/${id}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ action }),
-    });
-  };
-
-  // ================= ACTION =================
+  // ── Mark ready ──────────────────────────────────────────────────────────
   const markReady = async () => {
     if (!selectedTable) return;
+    const tableId = selectedTable;
+    setSelectedTable(null);
 
     try {
-      console.log("[v0] Marking table ready:", selectedTable, "Token:", token);
-      const response = await updateTable(selectedTable, "ready");
-      console.log("[v0] Response status:", response.status);
+      const res = await fetch(`${API_BASE_URL}/tables/${tableId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: "ready" }),
+      });
 
-      if (!response.ok) {
-        const error = await response.text();
-        console.error("[v0] Error response:", error);
-        alert(`Error: ${response.status} - ${error}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast.error(body.error || `Erreur ${res.status}`, { position: "top-right" });
         return;
       }
 
-      console.log("[v0] Table marked as ready successfully");
-      setSelectedTable(null);
-    } catch (error) {
-      console.error("[v0] Error marking table ready:", error);
-      alert("Error marking table ready: " + error.message);
+      toast.success(`🍳 Table ${tableId} — commande prête`, {
+        position: "top-right", autoClose: 3000,
+      });
+    } catch {
+      toast.error("Erreur réseau", { position: "top-right" });
     }
   };
 
-  // ================= FILTER =================
-  const confirmedTables = Object.keys(tables).filter(
-    (id) => tables[id].status === "confirmed",
-  );
+  // ── Derived ─────────────────────────────────────────────────────────────
+  const confirmedTables = Object.keys(tables).filter(id => tables[id].status === "confirmed");
+  const selectedOrder   = orders[selectedTable]?.order ?? null;
 
-  const getOrder = (tableId) => {
-    return orders[tableId]?.order || null;
-  };
-
-  const closeModal = () => setSelectedTable(null);
-
-  // ================= UI =================
+  // ── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="dashboard-container">
+      {/* HEADER */}
       <header className="app-header">
-        <div className="app-logo">Caisse Interface</div>
-        <nav className="header-nav">
-          <button
-            className="nav-link"
-            onClick={logout}
-            style={{ marginLeft: "auto", background: "#dc3545" }}
-          >
-            🚪 Logout
-          </button>
-        </nav>
+        <div className="header-logo">
+          🍳
+          <span>Cuisine</span>
+          <span className="header-role">Caisse</span>
+        </div>
+        {confirmedTables.length > 0 && (
+          <div className="header-user">
+            <span style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.85)" }}>
+              {confirmedTables.length} commande{confirmedTables.length > 1 ? "s" : ""} en attente
+            </span>
+          </div>
+        )}
+        <button className="header-logout" onClick={logout}>Déconnexion</button>
       </header>
 
       <main className="main-content">
         <section className="tables-grid">
-          {confirmedTables.map((id) => (
-            <div
-              key={id}
-              className="table-card status-confirmed"
-              onClick={() => setSelectedTable(id)}
-            >
-              <div className="table-card-header">Confirmée</div>
-              <div className="table-card-body">
-                <div className="table-number">Table {id}</div>
-              </div>
+          {confirmedTables.length === 0 ? (
+            <div className="caisse-empty">
+              <div className="caisse-empty-icon">🍽️</div>
+              <p>Aucune commande en attente</p>
+              <small>Les nouvelles commandes confirmées apparaîtront ici</small>
             </div>
-          ))}
+          ) : (
+            confirmedTables.map((id) => {
+              const t     = tables[id];
+              const count = getItemCount(orders[id]?.order);
+              return (
+                <div
+                  key={id}
+                  className="table-card status-confirmed"
+                  onClick={() => setSelectedTable(id)}
+                >
+                  <div className="table-card-header">
+                    <span>Confirmée</span>
+                    {t.serverName && (
+                      <span className="card-server-badge">{t.serverName}</span>
+                    )}
+                  </div>
+                  <div className="table-card-body">
+                    <span className="table-label">Table</span>
+                    <span className="table-number">{id}</span>
+                    {count > 0 && (
+                      <span className="card-items">{count} plat{count > 1 ? "s" : ""}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </section>
       </main>
 
       {/* MODAL */}
       {selectedTable && (
-        <div className="modal-overlay" onClick={closeModal}>
+        <div className="modal-overlay" onClick={() => setSelectedTable(null)}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-drag" />
+
             <div className="modal-header">
-              <h3>Table {selectedTable}</h3>
-              <button className="close-btn" onClick={closeModal}>
-                ✕
-              </button>
+              <div className="modal-title-group">
+                <div className="modal-title">Table {selectedTable}</div>
+                <div className="modal-status" style={{ background: "#2563eb" }}>
+                  Confirmée
+                </div>
+                {tables[selectedTable]?.serverName && (
+                  <div className="modal-server-info">
+                    👤 {tables[selectedTable].serverName}
+                  </div>
+                )}
+              </div>
+              <button className="modal-close" onClick={() => setSelectedTable(null)}>✕</button>
             </div>
 
             <div className="modal-body">
-              {getOrder(selectedTable) ? (
-                Object.entries(getOrder(selectedTable)).map(([cat, items]) => (
-                  <div key={cat}>
-                    <h4>{cat}</h4>
-
-                    {items.map((item) => (
-                      <div className="item-card" key={item.id}>
-                        <img className="item-img" src={`${item.img}`} alt="" />
-
-                        <div>
-                          <div style={{ fontWeight: 600 }}>{item.title}</div>
-                          <div className="small-text">Qty: {item.qt}</div>
+              {selectedOrder ? (
+                <>
+                  {Object.entries(selectedOrder).map(([cat, items]) => (
+                    <div className="order-section" key={cat}>
+                      <div className="order-category">{cat}</div>
+                      {items.map((item) => (
+                        <div key={item.id} className="item-card">
+                          <img className="item-img" src={item.img} alt="" />
+                          <div className="item-info">
+                            <div className="item-name">{item.title}</div>
+                            <div className="item-qty">Qté : {item.qt}</div>
+                          </div>
+                          <div className="item-price">{item.price * item.qt} DH</div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  ))}
+                  <div className="modal-total">
+                    <span className="total-label">Total</span>
+                    <span className="total-amount">{getTotal(selectedOrder)} DH</span>
                   </div>
-                ))
+                </>
               ) : (
-                <p className="small-text">No order found</p>
+                <p style={{ textAlign: "center", color: "var(--text-4)", padding: "16px 0", fontSize: "0.9rem" }}>
+                  Aucun détail de commande
+                </p>
               )}
+            </div>
 
-              <div className="btn-container">
-                <button className="btn-ready" onClick={markReady}>
-                  🍳 Marquer comme prêt
-                </button>
-              </div>
+            <div className="modal-footer">
+              <button className="action-btn btn-kitchen" onClick={markReady}>
+                🍳 Marquer comme prêt
+              </button>
             </div>
           </div>
         </div>

@@ -1,75 +1,146 @@
+/* ═══════════════════════════════════════════════════════════════
+   Page — individual menu item card (rendered inside .page-front / .page-back)
+═══════════════════════════════════════════════════════════════ */
+
+/* ─── Content area ───────────────────────────────────────────── */
 .content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.5rem;
+  padding: 0.65rem 0.55rem 0.5rem;
+  gap: 8px;
+  height: 100%;
 }
 
+/* ─── Item card ──────────────────────────────────────────────── */
 .window {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
-  border: solid 2px black;
+  border-radius: 14px;
   overflow: hidden;
+  border: none;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.11),
+    0 1px 3px rgba(0, 0, 0, 0.07);
+  background: #fff;
 }
 
 .window img {
   width: 100%;
-  height: 200px;
+  height: clamp(115px, 29vw, 210px);
   object-fit: cover;
+  display: block;
 }
 
-.page .page {
-  background-color: red;
-  background-image: url("../public/assets/backgroundPaper.png");
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
+/* ─── Item info ──────────────────────────────────────────────── */
 .info {
   width: 100%;
+  padding: 9px 12px 5px;
+  background: #fff;
 }
 
+.info h2 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 2px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Price */
+.info > p {
+  font-size: 0.82rem;
+  color: #c41e3a;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+/* ─── Quantity controls ──────────────────────────────────────── */
 .quantity {
   display: flex;
   justify-content: center;
-  align-items: center;
-}
-
-.quantity .addBtn {
-  background: crimson;
-  border-top-right-radius: 20px;
-
-  color: white;
+  align-items: stretch;
+  width: 100%;
+  border-top: 1px solid #f0ece6;
+  min-height: 38px;
 }
 
 .quantity button {
-  padding: 0.5rem 1rem;
+  flex: 1;
+  padding: 0;
   background: none;
   outline: none;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  transition: background 0.14s;
+  color: #555;
 }
+.quantity button:hover { background: #f5f1ec; }
+
+.quantity .addBtn {
+  background: #c41e3a;
+  color: #fff;
+  border-radius: 0;
+  font-size: 1.2rem;
+}
+.quantity .addBtn:hover { background: #a0182e; }
 
 .quantity p {
-  padding: 0 0.5rem;
-  font-size: 1.5rem;
-  font-weight: bold;
+  padding: 0 0.55rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  border-left: 1px solid #f0ece6;
+  border-right: 1px solid #f0ece6;
 }
 
+/* ─── Description ────────────────────────────────────────────── */
 .description {
   text-align: center;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.description p {
+  font-size: 0.67rem;
+  color: #aaa;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ─── Mobile tweaks ──────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .content    { padding: 0.4rem 0.35rem 0.35rem; gap: 6px; }
+  .window img { height: clamp(100px, 26vw, 170px); }
+  .info       { padding: 6px 8px 3px; }
+  .info h2    { font-size: 0.78rem; }
+  .info > p   { font-size: 0.75rem; }
+  .quantity   { min-height: 33px; }
+  .quantity button { font-size: 1rem; }
+  .quantity .addBtn { font-size: 1.05rem; }
+  .quantity p { font-size: 0.9rem; }
+  .description p { font-size: 0.62rem; -webkit-line-clamp: 1; }
+}
+
+@media (max-width: 380px) {
+  .content    { padding: 0.3rem 0.25rem 0.25rem; gap: 4px; }
+  .description { display: none; }
 }

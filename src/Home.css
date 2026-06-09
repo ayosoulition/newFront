@@ -1,140 +1,374 @@
-:root {
-  --bg-beverages: rgba(254, 232, 176, 0.3);
-  --bg-breakFast: rgba(254, 232, 176, 0.3);
-  --bg-bakery: rgba(254, 232, 176, 0.3);
-  --bg-iceCreams: rgba(254, 232, 176, 0.3);
-  --bg-home: rgba(254, 232, 176, 1);
+/* ═══════════════════════════════════════════════════════════════
+   Home Page — Customer-facing Menu Portal
+   Palette: near-black header · warm cream page · amber accents
+═══════════════════════════════════════════════════════════════ */
+
+/* ─── Page shell ─────────────────────────────────────────────── */
+
+.home-page {
+  min-height: 100vh;
+  background: #f7f5f2;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-.catContainer {
-  background: green;
+
+/* ─── Navigation header ──────────────────────────────────────── */
+
+.home-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #0f0d0c;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.home-nav nav ul {
+  list-style: none;
   display: flex;
   align-items: center;
-  height: 70px;
+  justify-content: space-between;
+  height: 58px;
+  padding: 0 1.25rem;
 }
 
-.catContainer img {
+/* Home icon button */
+.home-nav .headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.3rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  transition: background 0.18s;
+}
+.home-nav .headerBtn:hover { background: rgba(255,255,255,0.15); }
+
+/* Table number chip */
+.home-nav .header-table-chip {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50px;
+  padding: 4px 12px;
+  letter-spacing: 0.3px;
+}
+
+/* Ticket SVG icon */
+.home-nav svg path { stroke: rgba(255,255,255,0.8); }
+.home-nav nav ul li a svg:hover path { stroke: #fff; }
+
+/* ─── Hero ───────────────────────────────────────────────────── */
+
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #1a1210 0%, #2e1a0f 55%, #1a1210 100%);
+  padding: 3rem 1.5rem 2.75rem;
+  text-align: center;
+}
+
+/* Subtle dot-grid texture */
+.home-hero::before {
+  content: "";
   position: absolute;
-  width: 120px;
-  max-height: 120px;
-  border-radius: 100%;
-  top: 0;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
 }
 
-.left img {
-  left: 0;
+/* Warm glow from center */
+.home-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 90%, rgba(245,158,11,0.12) 0%, transparent 70%);
+  pointer-events: none;
 }
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.hero-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #f59e0b;
+  margin-bottom: 0.6rem;
+}
+
+.hero-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 0;
+}
+
+.hero-rule {
+  width: 44px;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #ea580c);
+  border-radius: 2px;
+  margin: 1rem auto;
+}
+
+.hero-table-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 50px;
+  padding: 7px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  margin-top: 0.25rem;
+}
+
+/* ─── Categories section ─────────────────────────────────────── */
+
+.home-categories {
+  padding: 1.75rem 1rem 2.5rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.section-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+  padding-left: 2px;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* ─── Category card ──────────────────────────────────────────── */
+
+.cat-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 16px;
+  /* focus ring for accessibility */
+  outline: none;
+}
+.cat-link:focus-visible .cat-card {
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.5);
+}
+
+.cat-card {
+  position: relative;
+  min-height: 178px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #1a1210 center / cover no-repeat;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  transition: transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1),
+              box-shadow 0.22s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cat-card:hover {
+  transform: translateY(-3px) scale(1.015);
+  box-shadow: 0 10px 32px rgba(0,0,0,0.28);
+}
+.cat-card:active { transform: scale(0.97); }
+
+/* Dark gradient overlay */
+.cat-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.88) 0%,
+    rgba(0,0,0,0.35) 45%,
+    rgba(0,0,0,0.05) 100%
+  );
+  transition: opacity 0.22s;
+}
+.cat-card:hover .cat-overlay {
+  opacity: 0.9;
+}
+
+/* Card text content */
+.cat-info {
+  position: relative;
+  z-index: 1;
+  padding: 14px 14px 16px;
+  width: 100%;
+}
+
+.cat-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+  margin-bottom: 5px;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  transition: color 0.18s, gap 0.18s;
+}
+.cat-card:hover .cat-cta {
+  color: #f59e0b;
+  gap: 8px;
+}
+.cat-cta svg { flex-shrink: 0; transition: transform 0.18s; }
+.cat-card:hover .cat-cta svg { transform: translateX(2px); }
+
+/* ─── Loading spinner (fallback) ─────────────────────────────── */
 
 .loadingSpin {
   width: 100%;
-  height: 100%;
-
-  background-color: #333333;
+  height: 100vh;
+  background: #0f0d0c;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.right img {
-  right: 0;
-}
-.boxContainer {
-  height: 120px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin: 1rem 0;
-}
+/* ─── Global resets preserved from original Home.css ────────────
+   These were relied on by Book, Register, Thanks, and other pages.
+   Do NOT remove or scope them.
+─────────────────────────────────────────────────────────────── */
 
-main {
-  height: 100%;
-}
+header { width: 100%; }
 
-.left {
-  justify-content: flex-end;
-}
-
-.right {
-  justify-content: flex-start;
-}
-
-header {
-  width: 100%;
-}
-.menuHeader {
-  background: crimson;
-  padding: 1rem;
-}
-
-.homeHeader {
-  background: var(--bg-home);
-  padding: 1rem;
-}
-
-.homeHeader nav ul {
-  font-size: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  list-style: none;
-}
-
-.action {
-  padding: 0 1rem;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-}
-
-.bakery {
-  background: var(--bg-bakery);
-}
-
-.beverages {
-  background: var(--bg-beverages);
-}
-
-.icecreams {
-  background: var(--bg-bakery);
-}
-
-.breakfasts {
-  background: var(--bg-breakFast);
-}
+main { height: 100%; }
 
 a {
   text-decoration: none;
   color: inherit;
 }
 
-a,
-button {
+a, button {
   outline: none;
   cursor: pointer;
 }
-button:active,
-a:active {
+
+button:active, a:active {
   -webkit-tap-highlight-color: transparent;
 }
 
-.headerBtn--ticket {
-  position: relative;
+/* Header used by Book, Register, Thanks pages */
+.menuHeader {
+  background: linear-gradient(160deg, #c41e3a 0%, #9c1830 100%);
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 12px rgba(156, 24, 48, 0.32);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.headerBtn--ticket::after {
-  content: "";
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 8px;
-  height: 8px;
-  background: #ef4444;
-  border-radius: 50%;
-  border: 2px solid white;
+.menuHeader nav {
+  width: 100%;
+}
+
+.menuHeader nav ul {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+  width: 100%;
+  height: 56px;
+  padding: 0 1.25rem;
+  font-size: inherit;
+}
+
+.menuHeader .headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.18s;
+}
+.menuHeader .headerBtn:hover { background: rgba(255, 255, 255, 0.22); }
+
+.menuHeader .header-table-chip {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  padding: 4px 14px;
+  letter-spacing: 0.3px;
+}
+
+.menuHeader svg path { stroke: rgba(255, 255, 255, 0.85); }
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+
+@media (min-width: 480px) {
+  .hero-title    { font-size: 2.75rem; }
+  .hero-eyebrow  { font-size: 0.75rem; }
+  .categories-grid { gap: 14px; }
+  .cat-card      { min-height: 200px; }
+  .cat-title     { font-size: 1.1rem; }
+  .cat-cta       { font-size: 0.78rem; }
+}
+
+@media (min-width: 680px) {
+  .home-hero      { padding: 4rem 2rem 3.5rem; }
+  .hero-title     { font-size: 3.25rem; }
+  .home-categories { padding: 2rem 1.5rem 3rem; }
+  .categories-grid { gap: 18px; }
+  .cat-card       { min-height: 230px; }
+  .cat-title      { font-size: 1.2rem; }
+  .cat-info       { padding: 18px 18px 20px; }
+}
+
+@media (min-width: 900px) {
+  .home-hero { padding: 5rem 2rem 4.5rem; }
+  .hero-title { font-size: 3.75rem; }
+  .categories-grid { grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .cat-card { min-height: 260px; }
+}
+
+@media (max-width: 340px) {
+  .cat-card { min-height: 155px; }
+  .cat-title { font-size: 0.9rem; }
+  .cat-cta   { display: none; }
 }

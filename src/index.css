@@ -1,27 +1,73 @@
-/* @import url("https://fonts.googleapis.com/css2?family=Bangers&family=Noto+Sans+Buhid&family=Oleo+Script&family=Oleo+Script+Swash+Caps&display=swap"); */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap");
 
+/* ─── Design tokens ──────────────────────────────────────────── */
 :root {
-  --box-shadow: 0 0 0.6rem rgba(0, 0, 0, 0.2);
+  /* Brand */
+  --brand:       #c41e3a;
+  --brand-dark:  #9c1830;
+  --brand-light: rgba(196, 30, 58, 0.08);
+
+  /* Text scale */
+  --text-1: #111111;   /* headings, primary */
+  --text-2: #444444;   /* body, secondary */
+  --text-3: #888888;   /* captions, muted */
+  --text-4: #bbbbbb;   /* placeholders, disabled */
+
+  /* Surfaces */
+  --surface-0: #ffffff;
+  --surface-1: #faf9f7;
+  --surface-2: #f3f1ee;
+
+  /* Utility */
+  --box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
-#root {
-  /* display: flex; */
-  /* justify-content: center; */
-  /* align-items: center; */
-  height: 100%;
-}
-
-* {
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+/* ─── Universal reset ────────────────────────────────────────── */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* ─── Font applied to every element ─────────────────────────── */
+* {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Base document ──────────────────────────────────────────── */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
 body {
   height: 100vh;
+  color: var(--text-1);
+  background: var(--surface-0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.5;
 }
+
+/* ─── App loading state ──────────────────────────────────────── */
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--text-3);
+  background: var(--surface-1);
+}
+
+/* ─── Global scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #ccc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }

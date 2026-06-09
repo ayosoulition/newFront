@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider, useAuth } from "./AuthContext";
 import {
@@ -162,6 +164,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <AppContent />
+        <ToastContainer />
       </BrowserRouter>
     </AuthProvider>
   );
