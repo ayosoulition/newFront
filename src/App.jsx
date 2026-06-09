@@ -23,7 +23,7 @@ import Register from "./Register.jsx";
 import Admin from "./Admin.jsx";
 import Caisse from "./Caisse.jsx";
 
-const API_BASE_URL = "http://localhost:3005";
+const API_BASE_URL = "http://192.168.1.86:3005";
 
 // ================= TABLE INIT =================
 function TableInitializer({ setTableNumber }) {
@@ -42,7 +42,7 @@ function TableInitializer({ setTableNumber }) {
     navigate("/home", { replace: true });
   }, [tableNumber]);
 
-  return <div>Loading...</div>;
+  return <div>Chargement…</div>;
 }
 
 // ================= INNER APP COMPONENT =================
@@ -71,7 +71,7 @@ function AppContent() {
     loadMenu();
   }, []);
 
-  if (loading) return <div>Loading menu...</div>;
+  if (loading) return <div>Chargement du menu…</div>;
 
   return (
     <Routes>

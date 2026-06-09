@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const API_BASE_URL = "http://localhost:3005";
+const API_BASE_URL = "http://192.168.1.86:3005";
 
 export default function Ticket({
   order,
@@ -28,7 +28,9 @@ export default function Ticket({
     // Fetch initial status
     fetch(`${API_BASE_URL}/tables`)
       .then((r) => r.json())
-      .then((data) => { if (data[table]) setTableStatus(data[table].status); })
+      .then((data) => {
+        if (data[table]) setTableStatus(data[table].status);
+      })
       .catch(() => {});
 
     // Listen for real-time updates
@@ -59,21 +61,20 @@ export default function Ticket({
           {/* ================= HEADER ================= */}
           {ticketType === "menu" ? (
             <h1>
-              Your <span className="mainColor">Order</span>
+              Votre <span className="mainColor">Commande</span>
             </h1>
           ) : ticketType === "order" ? (
             <h1>
-              Confirm <span className="mainColor">Order</span>
+              Confirmer la <span className="mainColor">Commande</span>
             </h1>
           ) : (
             <>
               <h1>
-                Your <span className="mainColor">Ticket</span> Order
+                Votre <span className="mainColor">Ticket</span>
               </h1>
 
               <p className="thanksText">
-                Thanks for your order! Here is your ticket. We will serve you as
-                soon as possible.
+                Merci pour votre commande ! Voici votre ticket. Nous vous servirons dans les plus brefs délais.
               </p>
 
               <p>{timestamp}</p>
@@ -98,20 +99,20 @@ export default function Ticket({
           <div className="total">
             <hr />
             <div className="price">
-              Total: <span className="mainColor">{total} DH</span>
+              Total : <span className="mainColor">{total} DH</span>
             </div>
           </div>
 
           {/* ================= PAY BUTTON ================= */}
           {ticketType !== "menu" && ticketType !== "order" && (
             <div className="pay">
-              <p>Clicker ici lorsque vous etes pret a payer!!</p>
+              <p>Cliquez ici lorsque vous êtes prêt à payer</p>
               <button
                 className="payBtn"
                 onClick={requestBill}
                 disabled={tableStatus !== "notPayed"}
               >
-                Pay / Addition
+                Payer / Addition
               </button>
             </div>
           )}
@@ -119,7 +120,7 @@ export default function Ticket({
       ) : (
         <div className="browse">
           <h1>
-            Your <span className="mainColor">Order</span>
+            Votre <span className="mainColor">Commande</span>
           </h1>
 
           {children}

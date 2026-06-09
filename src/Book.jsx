@@ -63,7 +63,7 @@ export default function Book({ data, tableNumber, order, setOrder, bookType }) {
       order: order,
     };
     try {
-      let lien = "http://localhost:3005/orders";
+      let lien = "http://192.168.1.86:3005/orders";
       const response = await fetch(lien, {
         method: "POST",
 
@@ -130,8 +130,7 @@ export default function Book({ data, tableNumber, order, setOrder, bookType }) {
               <Ticket order={order} ticketType={bookType}>
                 {bookType === "menu" ? (
                   <p>
-                    Browse the Menu and choose your items. Come back to this
-                    page to see the ticket and confirm the order.
+                    Parcourez le menu et choisissez vos articles. Revenez sur cette page pour voir votre ticket et confirmer la commande.
                   </p>
                 ) : null}
               </Ticket>
@@ -156,13 +155,13 @@ export default function Book({ data, tableNumber, order, setOrder, bookType }) {
           Object.keys(order).length !== 0 ? (
             <div className="actionBtn">
               <Link to="/order" replace>
-                <span className="sendOrder">Send Order</span>
+                <span className="sendOrder">Envoyer la Commande</span>
               </Link>
             </div>
           ) : null
         ) : (
           <div className="actionBtn" onClick={sendOrder}>
-            <span className="sendOrder">Confirm</span>
+            <span className="sendOrder">Confirmer</span>
           </div>
         )}
       </main>

@@ -38,14 +38,14 @@ export default function Login() {
   return (
     <div style={styles.container}>
       <form style={styles.card} onSubmit={handleLogin}>
-        <h2 style={styles.title}>Login</h2>
+        <h2 style={styles.title}>Connexion</h2>
 
         {error && <div style={styles.error}>{error}</div>}
 
         <input
           style={styles.input}
           type="text"
-          placeholder="Username"
+          placeholder="Nom d'utilisateur"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           disabled={loading}
@@ -54,14 +54,14 @@ export default function Login() {
         <input
           style={styles.input}
           type="password"
-          placeholder="Password"
+          placeholder="Mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
         />
 
         <button style={styles.button} disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Connexion en cours…" : "Se connecter"}
         </button>
       </form>
     </div>

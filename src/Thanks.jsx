@@ -21,7 +21,7 @@ export default function Thanks({ order, setOrder, tableNumber }) {
           (acc, item) => acc + item.price * item.quantity,
           0,
         ),
-        timestamp: new Date().toLocaleString("en-GB", {
+        timestamp: new Date().toLocaleString("fr-FR", {
           year: "numeric",
           month: "short",
           day: "2-digit",
@@ -68,7 +68,7 @@ export default function Thanks({ order, setOrder, tableNumber }) {
       <Header className="menuHeader" tableNumber={tableNumber} />
       <div className="ticketThanks">
         {loading ? (
-          <div className="status-msg">Sending order to kitchen…</div>
+          <div className="status-msg">Envoi de la commande à la cuisine…</div>
         ) : (
           <>
             <div className="thanks-hero">
@@ -77,8 +77,8 @@ export default function Thanks({ order, setOrder, tableNumber }) {
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
-              <h2 className="thanks-title">Order Confirmed</h2>
-              <p className="thanks-subtitle">Your order is on its way to the kitchen</p>
+              <h2 className="thanks-title">Commande Confirmée</h2>
+              <p className="thanks-subtitle">Votre commande est en route pour la cuisine</p>
               {confirmation.table && (
                 <span className="thanks-table-chip">
                   {isNaN(confirmation.table) ? confirmation.table : `Table ${confirmation.table}`}
@@ -96,7 +96,7 @@ export default function Thanks({ order, setOrder, tableNumber }) {
             </div>
 
             <button className="thanks-new-order" onClick={handleNewOrder}>
-              Place New Order
+              Nouvelle Commande
             </button>
           </>
         )}

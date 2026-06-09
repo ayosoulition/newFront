@@ -4,19 +4,21 @@ import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
 import "./Serveur.css";
 
-const API_BASE_URL = "http://localhost:3005";
+const API_BASE_URL = "http://192.168.1.86:3005";
 
 const getTotal = (orderObj) => {
   if (!orderObj) return 0;
   return Object.values(orderObj).reduce(
-    (s, items) => s + items.reduce((a, i) => a + i.price * i.qt, 0), 0
+    (s, items) => s + items.reduce((a, i) => a + i.price * i.qt, 0),
+    0,
   );
 };
 
 const getItemCount = (orderObj) => {
   if (!orderObj) return 0;
   return Object.values(orderObj).reduce(
-    (s, items) => s + items.reduce((a, i) => a + i.qt, 0), 0
+    (s, items) => s + items.reduce((a, i) => a + i.qt, 0),
+    0,
   );
 };
 
@@ -24,8 +26,8 @@ export default function Caisse() {
   const { logout, token } = useAuth();
   const socketRef = useRef(null);
 
-  const [tables, setTables]             = useState({});
-  const [orders, setOrders]             = useState({});
+  const [tables, setTables] = useState({});
+  const [orders, setOrders] = useState({});
   const [selectedTable, setSelectedTable] = useState(null);
 
   // ── Socket ──────────────────────────────────────────────────────────────
@@ -33,14 +35,20 @@ export default function Caisse() {
     if (!token) return;
 
     Promise.all([
-      fetch(`${API_BASE_URL}/tables`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch(`${API_BASE_URL}/orders`,  { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      fetch(`${API_BASE_URL}/tables`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((r) => r.json()),
     ])
       .then(([tablesData, ordersData]) => {
         setTables(tablesData);
         setOrders(ordersData);
       })
-      .catch(() => toast.error("Erreur de chargement", { position: "top-right" }));
+      .catch(() =>
+        toast.error("Erreur de chargement", { position: "top-right" }),
+      );
 
     const socket = io(API_BASE_URL);
     socketRef.current = socket;
@@ -69,12 +77,15 @@ export default function Caisse() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        toast.error(body.error || `Erreur ${res.status}`, { position: "top-right" });
+        toast.error(body.error || `Erreur ${res.status}`, {
+          position: "top-right",
+        });
         return;
       }
 
       toast.success(`🍳 Table ${tableId} — commande prête`, {
-        position: "top-right", autoClose: 3000,
+        position: "top-right",
+        autoClose: 3000,
       });
     } catch {
       toast.error("Erreur réseau", { position: "top-right" });
@@ -82,8 +93,10 @@ export default function Caisse() {
   };
 
   // ── Derived ─────────────────────────────────────────────────────────────
-  const confirmedTables = Object.keys(tables).filter(id => tables[id].status === "confirmed");
-  const selectedOrder   = orders[selectedTable]?.order ?? null;
+  const confirmedTables = Object.keys(tables).filter(
+    (id) => tables[id].status === "confirmed",
+  );
+  const selectedOrder = orders[selectedTable]?.order ?? null;
 
   // ── Render ──────────────────────────────────────────────────────────────
   return (
@@ -97,12 +110,17 @@ export default function Caisse() {
         </div>
         {confirmedTables.length > 0 && (
           <div className="header-user">
-            <span style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.85)" }}>
-              {confirmedTables.length} commande{confirmedTables.length > 1 ? "s" : ""} en attente
+            <span
+              style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.85)" }}
+            >
+              {confirmedTables.length} commande
+              {confirmedTables.length > 1 ? "s" : ""} en attente
             </span>
           </div>
         )}
-        <button className="header-logout" onClick={logout}>Déconnexion</button>
+        <button className="header-logout" onClick={logout}>
+          Déconnexion
+        </button>
       </header>
 
       <main className="main-content">
@@ -115,7 +133,7 @@ export default function Caisse() {
             </div>
           ) : (
             confirmedTables.map((id) => {
-              const t     = tables[id];
+              const t = tables[id];
               const count = getItemCount(orders[id]?.order);
               return (
                 <div
@@ -133,7 +151,9 @@ export default function Caisse() {
                     <span className="table-label">Table</span>
                     <span className="table-number">{id}</span>
                     {count > 0 && (
-                      <span className="card-items">{count} plat{count > 1 ? "s" : ""}</span>
+                      <span className="card-items">
+                        {count} plat{count > 1 ? "s" : ""}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -161,7 +181,12 @@ export default function Caisse() {
                   </div>
                 )}
               </div>
-              <button className="modal-close" onClick={() => setSelectedTable(null)}>✕</button>
+              <button
+                className="modal-close"
+                onClick={() => setSelectedTable(null)}
+              >
+                ✕
+              </button>
             </div>
 
             <div className="modal-body">
@@ -177,18 +202,29 @@ export default function Caisse() {
                             <div className="item-name">{item.title}</div>
                             <div className="item-qty">Qté : {item.qt}</div>
                           </div>
-                          <div className="item-price">{item.price * item.qt} DH</div>
+                          <div className="item-price">
+                            {item.price * item.qt} DH
+                          </div>
                         </div>
                       ))}
                     </div>
                   ))}
                   <div className="modal-total">
                     <span className="total-label">Total</span>
-                    <span className="total-amount">{getTotal(selectedOrder)} DH</span>
+                    <span className="total-amount">
+                      {getTotal(selectedOrder)} DH
+                    </span>
                   </div>
                 </>
               ) : (
-                <p style={{ textAlign: "center", color: "var(--text-4)", padding: "16px 0", fontSize: "0.9rem" }}>
+                <p
+                  style={{
+                    textAlign: "center",
+                    color: "var(--text-4)",
+                    padding: "16px 0",
+                    fontSize: "0.9rem",
+                  }}
+                >
                   Aucun détail de commande
                 </p>
               )}
