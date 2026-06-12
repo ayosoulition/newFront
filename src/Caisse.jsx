@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
 import "./Serveur.css";
 
-const API_BASE_URL = "http://192.168.1.86:3005";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const getTotal = (orderObj) => {
   if (!orderObj) return 0;

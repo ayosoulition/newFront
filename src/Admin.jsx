@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import "./Admin.css";
 
-const API_BASE_URL = "http://192.168.1.86:3005";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 const socket = io(API_BASE_URL);
 
 // ─── SVG icon set ────────────────────────────────────────────────────────────

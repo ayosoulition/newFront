@@ -63,7 +63,7 @@ export default function Book({ data, tableNumber, order, setOrder, bookType }) {
       order: order,
     };
     try {
-      let lien = "http://192.168.1.86:3005/orders";
+      let lien = `${import.meta.env.VITE_API_URL}/orders`;
       const response = await fetch(lien, {
         method: "POST",
 

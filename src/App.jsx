@@ -23,7 +23,7 @@ import Register from "./Register.jsx";
 import Admin from "./Admin.jsx";
 import Caisse from "./Caisse.jsx";
 
-const API_BASE_URL = "http://192.168.1.86:3005";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // ================= TABLE INIT =================
 function TableInitializer({ setTableNumber }) {

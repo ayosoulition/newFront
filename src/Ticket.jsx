@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const API_BASE_URL = "http://192.168.1.86:3005";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function Ticket({
   order,

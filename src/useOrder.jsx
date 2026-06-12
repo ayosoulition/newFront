@@ -7,7 +7,7 @@ const useOrders = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    const socketInstance = io("http://localhost:4000", {
+    const socketInstance = io(import.meta.env.VITE_API_URL, {
       withCredentials: true,
     });
 
