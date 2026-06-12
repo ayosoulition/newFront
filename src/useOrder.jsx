@@ -7,9 +7,7 @@ const useOrders = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    const socketInstance = io(import.meta.env.VITE_API_URL, {
-      withCredentials: true,
-    });
+    const socketInstance = io(import.meta.env.VITE_API_URL);
 
     setSocket(socketInstance);
 
