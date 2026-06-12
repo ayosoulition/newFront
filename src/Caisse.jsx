@@ -50,7 +50,7 @@ export default function Caisse() {
         toast.error("Erreur de chargement", { position: "top-right" }),
       );
 
-    const socket = io(API_BASE_URL);
+    const socket = io(API_BASE_URL, { transports: ["polling", "websocket"] });
     socketRef.current = socket;
 
     socket.on("tables-update", setTables);

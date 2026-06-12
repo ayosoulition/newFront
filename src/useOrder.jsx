@@ -7,7 +7,9 @@ const useOrders = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    const socketInstance = io(import.meta.env.VITE_API_URL);
+    const socketInstance = io(import.meta.env.VITE_API_URL, {
+      transports: ["polling", "websocket"],
+    });
 
     setSocket(socketInstance);
 

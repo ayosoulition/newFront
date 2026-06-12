@@ -77,7 +77,7 @@ export default function Serveur() {
   useEffect(() => {
     if (!token || !user) return;
 
-    const socket = io(API_BASE_URL);
+    const socket = io(API_BASE_URL, { transports: ["polling", "websocket"] });
     socketRef.current = socket;
 
     socket.on("connect", () => {

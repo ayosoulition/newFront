@@ -34,7 +34,7 @@ export default function Ticket({
       .catch(() => {});
 
     // Listen for real-time updates
-    const socket = io(API_BASE_URL);
+    const socket = io(API_BASE_URL, { transports: ["polling", "websocket"] });
     socketRef.current = socket;
     socket.on("tables-update", (tablesData) => {
       if (tablesData[table]) setTableStatus(tablesData[table].status);
