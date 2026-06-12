@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
+import React, { useEffect, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -11,7 +10,6 @@ export default function Ticket({
   timestamp,
 }) {
   const [tableStatus, setTableStatus] = useState(null);
-  const socketRef = useRef(null);
 
   const keys = Object.keys(order || {});
 
@@ -25,22 +23,17 @@ export default function Ticket({
   useEffect(() => {
     if (!table) return;
 
-    // Fetch initial status
-    fetch(`${API_BASE_URL}/tables`)
-      .then((r) => r.json())
-      .then((data) => {
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/tables`);
+        const data = await res.json();
         if (data[table]) setTableStatus(data[table].status);
-      })
-      .catch(() => {});
+      } catch {}
+    };
 
-    // Listen for real-time updates
-    const socket = io(API_BASE_URL, { transports: ["polling", "websocket"] });
-    socketRef.current = socket;
-    socket.on("tables-update", (tablesData) => {
-      if (tablesData[table]) setTableStatus(tablesData[table].status);
-    });
-
-    return () => socket.disconnect();
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 3000);
+    return () => clearInterval(interval);
   }, [table]);
 
   const requestBill = async () => {

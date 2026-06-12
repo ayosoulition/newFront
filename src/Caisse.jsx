@@ -1,5 +1,4 @@
-import { useEffect, useState, useRef } from "react";
-import { io } from "socket.io-client";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
 import "./Serveur.css";
@@ -24,39 +23,35 @@ const getItemCount = (orderObj) => {
 
 export default function Caisse() {
   const { logout, token } = useAuth();
-  const socketRef = useRef(null);
 
   const [tables, setTables] = useState({});
   const [orders, setOrders] = useState({});
   const [selectedTable, setSelectedTable] = useState(null);
 
-  // ── Socket ──────────────────────────────────────────────────────────────
+  // ── Polling ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!token) return;
 
-    Promise.all([
-      fetch(`${API_BASE_URL}/tables`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then((r) => r.json()),
-      fetch(`${API_BASE_URL}/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then((r) => r.json()),
-    ])
-      .then(([tablesData, ordersData]) => {
+    const fetchData = async () => {
+      try {
+        const [tablesData, ordersData] = await Promise.all([
+          fetch(`${API_BASE_URL}/tables`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((r) => r.json()),
+          fetch(`${API_BASE_URL}/orders`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((r) => r.json()),
+        ]);
         setTables(tablesData);
         setOrders(ordersData);
-      })
-      .catch(() =>
-        toast.error("Erreur de chargement", { position: "top-right" }),
-      );
+      } catch {
+        toast.error("Erreur de chargement", { position: "top-right" });
+      }
+    };
 
-    const socket = io(API_BASE_URL, { transports: ["polling", "websocket"] });
-    socketRef.current = socket;
-
-    socket.on("tables-update", setTables);
-    socket.on("new-order", setOrders);
-
-    return () => socket.disconnect();
+    fetchData();
+    const interval = setInterval(fetchData, 3000);
+    return () => clearInterval(interval);
   }, [token]);
 
   // ── Mark ready ──────────────────────────────────────────────────────────

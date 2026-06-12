@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
 import "./Serveur.css";
@@ -33,13 +32,12 @@ const FILTERS = [
 
 export default function Serveur() {
   const { logout, token, user } = useAuth();
-  const socketRef = useRef(null);
 
   const [tables, setTables] = useState({});
   const [orders, setOrders] = useState({});
   const [selectedTable, setSelectedTable] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [ownerFilter, setOwnerFilter] = useState("all"); // "all" | "mine"
+  const [ownerFilter, setOwnerFilter] = useState("all");
   const [searchTable, setSearchTable] = useState("");
 
   const prevTablesRef = useRef({});
@@ -73,85 +71,67 @@ export default function Serveur() {
     s.play().catch(() => {});
   }, []);
 
-  // ── Socket ──────────────────────────────────────────────────────────────
+  // ── Polling ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!token || !user) return;
 
-    const socket = io(API_BASE_URL, { transports: ["polling", "websocket"] });
-    socketRef.current = socket;
+    const fetchData = async () => {
+      try {
+        const [tablesData, ordersData] = await Promise.all([
+          fetch(`${API_BASE_URL}/tables`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((r) => r.json()),
+          fetch(`${API_BASE_URL}/orders`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((r) => r.json()),
+        ]);
 
-    socket.on("connect", () => {
-      socket.emit("server-join", { serverId: user.id });
-    });
+        const prevOrders = prevOrdersRef.current;
+        Object.keys(ordersData).forEach((tableId) => {
+          if (!prevOrders[tableId]) {
+            playSound();
+            toast.info(`🔔 Nouvelle commande — Table ${tableId}`, {
+              position: "top-right",
+              autoClose: 8000,
+            });
+          }
+        });
 
-    Promise.all([
-      fetch(`${API_BASE_URL}/tables`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then((r) => r.json()),
-      fetch(`${API_BASE_URL}/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then((r) => r.json()),
-    ])
-      .then(([tablesData, ordersData]) => {
+        const prevTables = prevTablesRef.current;
+        for (const tableId in tablesData) {
+          const next = tablesData[tableId];
+          const old = prevTables[tableId];
+          if (!old || old.status === next.status) continue;
+          if (next.status === "bill" && next.serverId === user.id) {
+            playSound();
+            toast.warning(`💰 Table ${tableId} demande l'addition`, {
+              position: "top-right",
+              autoClose: false,
+              toastId: `bill-${tableId}`,
+            });
+          }
+          if (next.status === "ready" && next.serverId === user.id) {
+            playSound();
+            toast.success(`🍳 Commande prête — Table ${tableId}`, {
+              position: "top-right",
+              autoClose: false,
+              toastId: `ready-${tableId}`,
+            });
+          }
+        }
+
         prevTablesRef.current = tablesData;
         prevOrdersRef.current = ordersData;
         setTables(tablesData);
         setOrders(ordersData);
-      })
-      .catch(() =>
-        toast.error("Erreur de chargement des données", {
-          position: "top-right",
-        }),
-      );
-
-    socket.on("new-order", (data) => {
-      const prev = prevOrdersRef.current;
-      Object.keys(data).forEach((tableId) => {
-        if (!prev[tableId]) {
-          playSound();
-          toast.info(`🔔 Nouvelle commande — Table ${tableId}`, {
-            position: "top-right",
-            autoClose: 8000,
-          });
-        }
-      });
-      prevOrdersRef.current = data;
-      setOrders(data);
-    });
-
-    socket.on("tables-update", (newTables) => {
-      const prev = prevTablesRef.current;
-      for (const tableId in newTables) {
-        const next = newTables[tableId];
-        const old = prev[tableId];
-        if (!old || old.status === next.status) continue;
-        if (next.status === "bill" && next.serverId === user.id) {
-          playSound();
-          toast.warning(`💰 Table ${tableId} demande l'addition`, {
-            position: "top-right",
-            autoClose: false,
-            toastId: `bill-${tableId}`,
-          });
-        }
+      } catch {
+        toast.error("Erreur de chargement des données", { position: "top-right" });
       }
-      prevTablesRef.current = newTables;
-      setTables(newTables);
-    });
+    };
 
-    socket.on("order-ready", ({ tableId }) => {
-      playSound();
-      toast.success(`🍳 Commande prête — Table ${tableId}`, {
-        position: "top-right",
-        autoClose: false,
-        toastId: `ready-${tableId}`,
-      });
-      setTables((prev) => ({
-        ...prev,
-        [tableId]: { ...prev[tableId], status: "ready" },
-      }));
-    });
-
-    return () => socket.disconnect();
+    fetchData();
+    const interval = setInterval(fetchData, 3000);
+    return () => clearInterval(interval);
   }, [token, user, playSound]);
 
   // ── HTTP helper ─────────────────────────────────────────────────────────

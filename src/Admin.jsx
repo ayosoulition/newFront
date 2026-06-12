@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import "./Admin.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
-const socket = io(API_BASE_URL, { transports: ["polling", "websocket"] });
 
 // ─── SVG icon set ────────────────────────────────────────────────────────────
 const ForkKnifeIcon = () => (
@@ -474,12 +472,11 @@ export default function Admin() {
   }, []);
 
   useEffect(() => {
-    socket.on("menu-update", (m) => setMenu(m));
-    socket.on("new-order", () => fetchHistory());
-    return () => {
-      socket.off("menu-update");
-      socket.off("new-order");
-    };
+    const interval = setInterval(() => {
+      fetchHistory();
+      fetchMenu();
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const refreshAll = async () => {
